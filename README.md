@@ -31,3 +31,7 @@ LienSign is a local-first browser tool designed for subcontractors to generate, 
 
 ## ⚖️ Legal Disclaimer
 LienSign is a document generation tool and NOT a law firm. This software does not provide legal advice. Always consult with an attorney to ensure your waivers meet specific requirements for your contract.
+
+## 📄 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
