@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: .
+      target: prod
+      args:
+        PUBLIC_SUPABASE_URL: ${PUBLIC_SUPABASE_URL}
+        PUBLIC_SUPABASE_ANON_KEY: ${PUBLIC_SUPABASE_ANON_KEY}
+    ports:
+      - "4321:4321"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+
+  dev:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "4321:4321"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .env

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://liensign.com/sitemap-index.xml

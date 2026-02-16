@@ -1,0 +1,220 @@
+---
+import {
+	Building,
+	CheckCircle,
+	ChevronRight,
+	FileText,
+	Scale,
+	ShieldCheck,
+} from "lucide-react";
+import Layout from "../layouts/Layout.astro";
+import { type StateTemplates, WAIVER_TEMPLATES } from "../lib/templates";
+
+export function getStaticPaths() {
+	return Object.entries(WAIVER_TEMPLATES).map(([code, data]) => ({
+		params: { state: code.toLowerCase() },
+		props: { stateCode: code, data },
+	}));
+}
+
+interface Props {
+	stateCode: string;
+	data: StateTemplates;
+}
+
+const { stateCode, data } = Astro.props;
+const { name, statute, forms } = data;
+
+const _title = `Professional ${name} Lien Waiver Forms (${new Date().getFullYear()} Compliant)`;
+const _description = `Create legally binding ${name} Conditional and Unconditional Lien Waivers in seconds. Fully compliant with ${statute}. Protect your lien rights today.`;
+
+const _jsonLd = {
+	"@context": "https://schema.org",
+	"@graph": [
+		{
+			"@type": "SoftwareApplication",
+			name: `LienSign ${name} Waiver Generator`,
+			description: _description,
+			applicationCategory: "BusinessApplication",
+			operatingSystem: "Web Browser",
+			author: {
+				"@type": "Organization",
+				name: "LienSign",
+			},
+		},
+		{
+			"@type": "FAQPage",
+			mainEntity: [
+				{
+					"@type": "Question",
+					name: `Are these ${name} lien waivers legally binding?`,
+					acceptedAnswer: {
+						"@type": "Answer",
+						text: `Yes, our ${name} lien waivers are strictly based on ${statute} and updated for ${new Date().getFullYear()}.`,
+					},
+				},
+			],
+		},
+	],
+};
+---
+
+<Layout title={_title} description={_description} jsonLd={_jsonLd}>
+    <!-- Navigation Breadcrumbs -->
+    <nav class="bg-slate-50 border-b border-slate-200 py-4">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <ol class="flex items-center space-x-2 text-sm text-slate-500">
+                <li><a href="/" class="hover:text-blue-600">Home</a></li>
+                <ChevronRight size={14} />
+                <li>
+                    <a href="/templates" class="hover:text-blue-600"
+                        >Templates</a
+                    >
+                </li>
+                <ChevronRight size={14} />
+                <li class="font-medium text-slate-900">{name}</li>
+            </ol>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="py-16 sm:py-24 bg-white overflow-hidden">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
+            <div class="max-w-3xl text-left">
+                <div
+                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold mb-6 border border-blue-100 uppercase tracking-widest"
+                >
+                    <ShieldCheck size={14} />
+                    {statute} Compliant
+                </div>
+                <h1
+                    class="text-4xl font-extrabold text-slate-900 sm:text-6xl font-serif mb-6 leading-tight"
+                >
+                    Professional <span class="text-blue-600">{name}</span> Lien Waivers
+                </h1>
+                <p class="text-lg text-slate-600 leading-relaxed mb-8">
+                    Generate legally binding Conditional and Unconditional lien
+                    waivers for {name} construction projects. Our templates are strictly
+                    compliant with {statute} for {new Date().getFullYear()}.
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a
+                        href="/wizard"
+                        class="rounded-full bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-blue-200 hover:bg-blue-500 transition-all active:scale-95"
+                    >
+                        Create {name} Waiver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Waiver Types Grid -->
+    <section class="py-24 bg-slate-50 border-y border-slate-200">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-slate-900 font-serif">
+                    Supported {name} Forms
+                </h2>
+                <p class="mt-4 text-slate-600">
+                    Select the form that matches your current payment stage. All
+                    forms are generated locally.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {
+                    Object.entries(forms).map(([type, form]) => (
+                        <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all group relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <FileText size={80} />
+                            </div>
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                    <Scale size={20} />
+                                </div>
+                                <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest">
+                                    {type.replace(/_/g, " ")}
+                                </h3>
+                            </div>
+                            <h4 class="text-xl font-bold text-slate-900 mb-2 font-serif uppercase tracking-tight">
+                                {form.title}
+                            </h4>
+                            <p class="text-sm text-slate-500 mb-8 leading-relaxed">
+                                Professional {name} Statutory form compliant
+                                with {statute}.
+                            </p>
+                            <a
+                                href="/wizard"
+                                class="inline-flex items-center gap-2 text-blue-600 font-bold text-sm hover:text-blue-700 transition-colors"
+                            >
+                                Use this form <ChevronRight size={16} />
+                            </a>
+                        </div>
+                    ))
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Us Section -->
+    <section class="py-24 bg-white">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <div class="flex gap-4">
+                    <div
+                        class="h-12 w-12 shrink-0 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl"
+                    >
+                        1
+                    </div>
+                    <div>
+                        <h3
+                            class="text-lg font-bold text-slate-900 font-serif mb-2"
+                        >
+                            Statutory Compliance
+                        </h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Strictly based on {statute} requirements for {name} projects.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div
+                        class="h-12 w-12 shrink-0 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xl"
+                    >
+                        2
+                    </div>
+                    <div>
+                        <h3
+                            class="text-lg font-bold text-slate-900 font-serif mb-2"
+                        >
+                            Local & Private
+                        </h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Your data never leaves your browser. No accounts or
+                            cloud storage required.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div
+                        class="h-12 w-12 shrink-0 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center font-bold text-xl"
+                    >
+                        3
+                    </div>
+                    <div>
+                        <h3
+                            class="text-lg font-bold text-slate-900 font-serif mb-2"
+                        >
+                            Instant Download
+                        </h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Generate, sign, and download your professional PDF
+                            in seconds.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</Layout>

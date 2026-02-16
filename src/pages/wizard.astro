@@ -1,0 +1,17 @@
+---
+import { Wizard as WizardIsland } from "../components/wizard/Wizard";
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+    title="Create Lien Waiver | LienSign"
+    description="Generate your legally accurate lien waiver in seconds."
+>
+    <div
+        class="min-h-[calc(100vh-16rem)] flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8"
+    >
+        <div class="max-w-3xl w-full">
+            <WizardIsland client:load />
+        </div>
+    </div>
+</Layout>

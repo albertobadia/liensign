@@ -1,0 +1,147 @@
+---
+import { Gavel, SendHorizontal, Zap } from "lucide-react";
+import Layout from "../layouts/Layout.astro";
+import { _stateList, _stateListHero } from "../lib/app-logic";
+---
+
+<Layout title="Professional Lien Waivers Made Simple">
+	<!-- Hero Section -->
+	<section class="relative overflow-hidden pt-24 pb-32">
+		<div
+			class="absolute inset-0 -z-10 bg-[url('/assets/hero-bg.png')] bg-cover bg-center opacity-10 blur-[2px]"
+		>
+		</div>
+		<div
+			class="absolute inset-0 -z-10 bg-gradient-to-b from-white via-white/80 to-white"
+		>
+		</div>
+
+		<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+			<div
+				class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10 mb-8 animate-fade-in"
+			>
+				Updated for 2026 Statutes ({_stateList})
+			</div>
+			<h1
+				class="mx-auto max-w-4xl text-5xl font-extrabold tracking-tight text-slate-900 sm:text-7xl font-serif"
+			>
+				Your Lien Waivers, <span
+					class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600"
+					>done right</span
+				> and in seconds.
+			</h1>
+			<p class="mx-auto mt-8 max-w-2xl text-lg leading-8 text-slate-600">
+				Streamline your workflow with our <strong
+					>local and private</strong
+				> tool. Generate, sign, and download professional lien waivers for
+				{_stateListHero}
+				entirely on your device, without cloud or tracking.
+			</p>
+			<div class="mt-12 flex items-center justify-center gap-x-6">
+				<a
+					href="/wizard"
+					class="rounded-full bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-blue-200 hover:bg-blue-500 transition-all transform hover:scale-105 active:scale-95"
+				>
+					Launch Waiver Wizard
+				</a>
+				<a
+					href="#features"
+					class="text-sm font-bold leading-6 text-slate-900 flex items-center gap-1 hover:text-blue-600 transition-colors"
+				>
+					See how it works <span aria-hidden="true">→</span>
+				</a>
+			</div>
+		</div>
+	</section>
+
+	<!-- Features Grid -->
+	<section id="features" class="py-24 bg-white">
+		<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			<div class="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
+				<!-- Legal Compliance -->
+				<div
+					class="flex flex-col gap-6 p-8 rounded-3xl border border-slate-100 bg-slate-50/50 hover:bg-white transition-all hover:shadow-2xl hover:shadow-blue-100/50 group hover:-translate-y-1"
+				>
+					<div
+						class="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-xl shadow-blue-200 group-hover:scale-110 transition-transform"
+					>
+						<Gavel size={28} strokeWidth={2.5} />
+					</div>
+					<div>
+						<h3
+							class="text-2xl font-bold text-slate-900 font-serif mb-3"
+						>
+							Updated Templates
+						</h3>
+						<p class="text-slate-600 leading-relaxed">
+							Templates updated for 2026 including TX (HB 2237),
+							FL (SB 658), and more. Built based on statutory
+							requirements.
+						</p>
+					</div>
+				</div>
+
+				<!-- Incredible Speed -->
+				<div
+					class="flex flex-col gap-6 p-8 rounded-3xl border border-slate-100 bg-slate-50/50 hover:bg-white transition-all hover:shadow-2xl hover:shadow-indigo-100/50 group hover:-translate-y-1"
+				>
+					<div
+						class="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center text-white shadow-xl shadow-indigo-200 group-hover:scale-110 transition-transform"
+					>
+						<Zap size={28} strokeWidth={2.5} />
+					</div>
+					<div>
+						<h3
+							class="text-2xl font-bold text-slate-900 font-serif mb-3"
+						>
+							Incredible Speed
+						</h3>
+						<p class="text-slate-600 leading-relaxed">
+							From data to signed PDF in less than 2 minutes.
+							Integrated with mobile-optimized digital signatures.
+						</p>
+					</div>
+				</div>
+
+				<!-- Local & Private -->
+				<div
+					class="flex flex-col gap-6 p-8 rounded-3xl border border-slate-100 bg-slate-50/50 hover:bg-white transition-all hover:shadow-2xl hover:shadow-cyan-100/50 group hover:-translate-y-1"
+				>
+					<div
+						class="h-14 w-14 rounded-2xl bg-gradient-to-br from-cyan-600 to-blue-700 flex items-center justify-center text-white shadow-xl shadow-cyan-200 group-hover:scale-110 transition-transform"
+					>
+						<SendHorizontal size={28} strokeWidth={2.5} />
+					</div>
+					<div>
+						<h3
+							class="text-2xl font-bold text-slate-900 font-serif mb-3"
+						>
+							Local & Private
+						</h3>
+						<p class="text-slate-600 leading-relaxed">
+							Everything happens on your device. Generate and
+							download your waivers instantly. No accounts, no
+							cloud, no tracking.
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</Layout>
+
+<style>
+	@keyframes fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+	.animate-fade-in {
+		animation: fade-in 0.8s ease-out forwards;
+	}
+</style>
