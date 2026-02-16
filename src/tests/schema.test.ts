@@ -14,7 +14,6 @@ describe("Wizard Schema Validation", () => {
 		waiverType: "conditional_progress",
 		paymentAmount: "1000",
 		throughDate: "2026-02-15",
-		taxId: "12-3456789",
 		recipientEmail: "client@example.com",
 		signature: "data:image/png;base64,fake_signature_data",
 	};

@@ -78,27 +78,6 @@ export function StepContractor() {
 						</p>
 					)}
 				</div>
-
-				<div>
-					<label
-						htmlFor="taxId"
-						className="block text-sm font-semibold text-slate-700 mb-1"
-					>
-						Tax ID (SSN or EIN)
-					</label>
-					<input
-						id="taxId"
-						{...register("taxId")}
-						placeholder="XX-XXXXXXX or XXX-XX-XXXX"
-						className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-					/>
-					<p className="text-[10px] text-slate-400 mt-1">
-						Required for legal validity of the statutory waiver form.
-					</p>
-					{errors.taxId && (
-						<p className="text-red-500 text-xs mt-1">{errors.taxId.message}</p>
-					)}
-				</div>
 			</div>
 		</div>
 	);

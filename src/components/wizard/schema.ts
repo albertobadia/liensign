@@ -4,12 +4,6 @@ export const wizardSchema = z.object({
 	contractorName: z.string().min(2, "Contractor name is required"),
 	contractorAddress: z.string().min(5, "Valid address is required"),
 	contractorPhone: z.string().min(7, "Valid phone is required"),
-	taxId: z
-		.string()
-		.transform((val) => val.replace(/\D/g, ""))
-		.refine((val) => val.length === 9, {
-			message: "Tax ID must be exactly 9 digits",
-		}),
 
 	projectName: z.string().min(2, "Project name is required"),
 	projectAddress: z.string().min(5, "Project address is required"),

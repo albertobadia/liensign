@@ -16,6 +16,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { APP_SETTINGS } from "../../config/settings";
 import { generateWaiverPDF } from "../../lib/pdf";
+import { getProfile } from "../../lib/userStore";
 import { cn } from "../../lib/utils";
 import { type WizardData, wizardSchema } from "./schema";
 import { StepContractor } from "./steps/StepContractor";
@@ -61,6 +62,14 @@ export function Wizard() {
 	const { trigger, handleSubmit, setValue } = methods;
 
 	useEffect(() => {
+		const profile = getProfile();
+		if (profile) {
+			setValue("contractorName", profile.contractorName);
+			setValue("contractorAddress", profile.contractorAddress);
+			setValue("contractorPhone", profile.contractorPhone);
+			setValue("signature", profile.signature);
+		}
+
 		const params = new URLSearchParams(window.location.search);
 		const state = params.get("state")?.toUpperCase();
 		const type = params.get("type");
@@ -93,7 +102,7 @@ export function Wizard() {
 
 	const getFieldsForStep = (step: number): string[] => {
 		const fields: Record<number, string[]> = {
-			0: ["contractorName", "contractorAddress", "contractorPhone", "taxId"],
+			0: ["contractorName", "contractorAddress", "contractorPhone"],
 			1: ["projectName", "projectAddress", "projectState", "ownerName"],
 			2: ["waiverType", "paymentAmount", "throughDate"],
 			3: ["signature"],
@@ -122,7 +131,6 @@ export function Wizard() {
 					ownerName: data.ownerName,
 					paymentAmount: data.paymentAmount,
 					throughDate: data.throughDate,
-					taxId: data.taxId,
 				},
 				data.signature,
 			);
@@ -201,6 +209,28 @@ export function Wizard() {
 					onSubmit={handleSubmit(onSubmit)}
 					className="p-4 sm:p-8 min-h-[450px]"
 				>
+					{!getProfile() && currentStep === 0 && (
+						<div className="mb-8 p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+							<div className="mt-1 p-2 bg-blue-600 rounded-lg text-white">
+								<User size={16} />
+							</div>
+							<div>
+								<h4 className="text-sm font-bold text-blue-900">
+									Pro Tip: Save your info!
+								</h4>
+								<p className="text-xs text-blue-700 mt-1 leading-relaxed">
+									You can save your contractor details and signature in{" "}
+									<a
+										href="/my-info"
+										className="underline font-bold hover:text-blue-900"
+									>
+										My Info
+									</a>{" "}
+									to skip this step in the future.
+								</p>
+							</div>
+						</div>
+					)}
 					<AnimatePresence mode="wait">
 						<motion.div
 							key={currentStep}

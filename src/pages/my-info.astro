@@ -1,0 +1,13 @@
+---
+import { MyInfoForm } from "../components/profile/MyInfoForm";
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+    title="My Information | LienSign"
+    description="Manage your persistent contractor information and digital signature."
+>
+    <div class="py-12 px-4 sm:px-6 lg:px-8">
+        <MyInfoForm client:only="react" />
+    </div>
+</Layout>
