@@ -7,6 +7,7 @@ import {
 	Check,
 	ChevronLeft,
 	ChevronRight,
+	Eye,
 	FileText,
 	Loader2,
 	User,
@@ -116,6 +117,43 @@ export function Wizard() {
 		}
 	};
 
+	const onPreview = async () => {
+		const data = methods.getValues();
+		const isStepValid = await trigger();
+
+		if (!isStepValid) {
+			toast.error("Please fix errors before previewing.");
+			return;
+		}
+
+		if (!data.signature) {
+			toast.error("Please sign the document before previewing.");
+			return;
+		}
+
+		setIsSubmitting(true);
+		try {
+			const pdfBytes = await generateWaiverPDF(
+				data.projectState,
+				data.waiverType,
+				data,
+				data.signature,
+			);
+
+			const blob = new Blob([pdfBytes as BlobPart], {
+				type: "application/pdf",
+			});
+			const url = URL.createObjectURL(blob);
+			window.open(url, "_blank");
+			toast.success("Document preview opened in a new tab.");
+		} catch (error: unknown) {
+			console.error("Preview error:", error);
+			toast.error("Failed to generate preview.");
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
 	const onSubmit = async (data: WizardData) => {
 		setIsSubmitting(true);
 
@@ -123,15 +161,7 @@ export function Wizard() {
 			const pdfBytes = await generateWaiverPDF(
 				data.projectState,
 				data.waiverType,
-				{
-					contractorName: data.contractorName,
-					contractorAddress: data.contractorAddress,
-					projectName: data.projectName,
-					projectAddress: data.projectAddress,
-					ownerName: data.ownerName,
-					paymentAmount: data.paymentAmount,
-					throughDate: data.throughDate,
-				},
+				data,
 				data.signature,
 			);
 
@@ -245,20 +275,33 @@ export function Wizard() {
 				</form>
 
 				<div className="bg-slate-50 border-t border-slate-200 px-8 py-6 flex items-center justify-between">
-					<button
-						type="button"
-						onClick={handleBack}
-						disabled={currentStep === 0 || isSubmitting}
-						className={cn(
-							"flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all",
-							currentStep === 0 || isSubmitting
-								? "text-slate-300 pointer-events-none"
-								: "text-slate-600 hover:bg-slate-100",
+					<div className="flex items-center gap-3">
+						{currentStep === STEPS.length - 1 && (
+							<button
+								type="button"
+								onClick={onPreview}
+								disabled={isSubmitting}
+								className="flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold text-blue-600 hover:bg-blue-50 transition-all disabled:opacity-50"
+							>
+								<Eye size={18} />
+								Preview
+							</button>
 						)}
-					>
-						<ChevronLeft size={18} />
-						Back
-					</button>
+						<button
+							type="button"
+							onClick={handleBack}
+							disabled={currentStep === 0 || isSubmitting}
+							className={cn(
+								"flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all",
+								currentStep === 0 || isSubmitting
+									? "text-slate-300 pointer-events-none"
+									: "text-slate-600 hover:bg-slate-100",
+							)}
+						>
+							<ChevronLeft size={18} />
+							Back
+						</button>
+					</div>
 
 					<button
 						type="button"

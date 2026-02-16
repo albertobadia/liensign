@@ -80,9 +80,17 @@ export async function generateWaiverPDF(
 	}
 
 	let bodyText = template.body;
+	// Replace fields defined in metadata
 	for (const field of template.fields) {
 		const value = data[field] || `[${field.toUpperCase()}]`;
 		bodyText = bodyText.replaceAll(`{{${field}}}`, value);
+	}
+
+	// Safety pass: replace any other keys present in the data object
+	for (const [key, value] of Object.entries(data)) {
+		if (typeof value === "string") {
+			bodyText = bodyText.replaceAll(`{{${key}}}`, value);
+		}
 	}
 
 	const bodyFontSize = state.baseFontSize || 11;
