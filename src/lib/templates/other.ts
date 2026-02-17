@@ -3,6 +3,8 @@ import type { StateTemplates } from "./types";
 export const OTHER: StateTemplates = {
 	name: "Standard (Other States)",
 	statute: "Common Law Template (Fallback for non-statutory states)",
+	lastVerified: "Feb 17, 2026",
+	sourceUrl: "N/A",
 	forms: {
 		conditional_progress: {
 			title: "CONDITIONAL WAIVER AND RELEASE ON PROGRESS PAYMENT",

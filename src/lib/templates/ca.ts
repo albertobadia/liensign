@@ -28,7 +28,10 @@ Exceptions
 This document does not affect any of the following:
 (1) Retentions.
 (2) Extras for which the claimant has not received payment.
-(3) The release does not cover: (A) Extras for which the claimant has not received payment. (B) Contract rights, including(i) a right based on rescission, abandonment, or breach of contract, and(ii) the right to recover compensation for work not compensated by the payment.`,
+(3) The following progress payments for which the claimant has previously given a conditional waiver and release but has not received payment:
+Date(s) of waiver and release:
+Amount(s) of unpaid progress payment(s): $
+(4) Contract rights, including (A) a right based on rescission, abandonment, or breach of contract, and (B) the right to recover compensation for work not compensated by the payment.`,
 			fields: [
 				"contractorName",
 				"customerName",
