@@ -151,7 +151,7 @@ export function StepFinancials() {
 						<input
 							id="maker"
 							{...register("maker")}
-							placeholder="Full Name / Company"
+							placeholder="Full Name (Individual or Company)"
 							className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
 						/>
 						{errors.maker && (

@@ -11,10 +11,11 @@ export function StepContractor() {
 		<div className="space-y-6">
 			<div className="text-left">
 				<h3 className="text-2xl font-bold text-slate-900 font-serif">
-					Contractor Information
+					Claimant Information
 				</h3>
 				<p className="text-slate-600 mt-1">
-					Enter your company details as they appear on the contract.
+					Enter your details (company or individual) as they appear on the
+					contract.
 				</p>
 			</div>
 
@@ -24,12 +25,12 @@ export function StepContractor() {
 						htmlFor="contractorName"
 						className="block text-sm font-semibold text-slate-700 mb-1"
 					>
-						Company Name
+						Claimant / Company Name
 					</label>
 					<input
 						id="contractorName"
 						{...register("contractorName")}
-						placeholder="e.g. Acme Construction LLC"
+						placeholder="e.g. Acme Construction LLC or John Doe"
 						className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
 					/>
 					{errors.contractorName && (

@@ -62,8 +62,8 @@ export function MyInfoForm() {
 						My Information
 					</h2>
 					<p className="text-slate-600">
-						Configure your company details once. These will be automatically
-						filled when you generate a new lien waiver.
+						Configure your details (company or individual) once. These will be
+						automatically filled when you generate a new lien waiver.
 					</p>
 				</div>
 
@@ -74,7 +74,7 @@ export function MyInfoForm() {
 								htmlFor="contractorName"
 								className="block text-sm font-semibold text-slate-700 mb-1"
 							>
-								Company Name
+								Claimant / Company Name
 							</label>
 							<input
 								id="contractorName"
@@ -83,7 +83,7 @@ export function MyInfoForm() {
 								onChange={(e) =>
 									setProfile((p) => ({ ...p, contractorName: e.target.value }))
 								}
-								placeholder="e.g. Acme Construction LLC"
+								placeholder="e.g. Acme Construction LLC or John Doe"
 								className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
 							/>
 						</div>
@@ -93,7 +93,7 @@ export function MyInfoForm() {
 								htmlFor="contractorAddress"
 								className="block text-sm font-semibold text-slate-700 mb-1"
 							>
-								Full Business Address
+								Full Address
 							</label>
 							<input
 								id="contractorAddress"
