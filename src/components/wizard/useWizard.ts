@@ -21,6 +21,10 @@ export function useWizard(steps: typeof STEPS) {
 		resolver: zodResolver(wizardSchema),
 		defaultValues: {
 			waiverType: "conditional_progress",
+			signatureOffsetX: 0,
+			signatureOffsetY: 0,
+			signatureScale: 1,
+			signatureRotation: 0,
 		},
 		mode: "onChange",
 	});
@@ -250,6 +254,7 @@ export function useWizard(steps: typeof STEPS) {
 		handleNext,
 		handleBack,
 		onPreview,
+		// @ts-expect-error: Hook form type inference mismatch after schema update
 		onSubmit: handleSubmit(onSubmit, onInvalid),
 		onEmail,
 		handleCreateAnother,

@@ -42,3 +42,37 @@ export function clearProfile(): void {
 export function hasProfile(): boolean {
 	return getProfile() !== null;
 }
+
+export interface SignaturePreset {
+	offsetX: number;
+	offsetY: number;
+	scale: number;
+	rotation: number;
+}
+
+const PRESET_KEY_PREFIX = "liensign_sig_preset_";
+
+export function saveSignaturePreset(
+	stateCode: string,
+	waiverType: string,
+	preset: SignaturePreset,
+): void {
+	if (typeof window === "undefined") return;
+	const key = `${PRESET_KEY_PREFIX}${stateCode}_${waiverType}`;
+	localStorage.setItem(key, JSON.stringify(preset));
+}
+
+export function getSignaturePreset(
+	stateCode: string,
+	waiverType: string,
+): SignaturePreset | null {
+	if (typeof window === "undefined") return null;
+	const key = `${PRESET_KEY_PREFIX}${stateCode}_${waiverType}`;
+	const data = localStorage.getItem(key);
+	if (!data) return null;
+	try {
+		return JSON.parse(data) as SignaturePreset;
+	} catch {
+		return null;
+	}
+}

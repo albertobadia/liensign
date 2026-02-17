@@ -74,7 +74,10 @@ export function Wizard() {
 
 	return (
 		<FormProvider {...methods}>
-			<div className="bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden">
+			<form
+				onSubmit={onSubmit}
+				className="bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden"
+			>
 				<div className="bg-slate-50 border-b border-slate-200 px-4 sm:px-8 py-6">
 					<div className="flex items-center justify-between relative">
 						<div className="absolute top-5 left-[10%] right-[10%] h-[2px] bg-slate-200 -z-0" />
@@ -117,7 +120,7 @@ export function Wizard() {
 					</div>
 				</div>
 
-				<form onSubmit={onSubmit} className="p-4 sm:p-8 min-h-[450px]">
+				<div className="p-4 sm:p-8 min-h-[450px]">
 					{!getProfile() && currentStep === 0 && (
 						<div className="mb-8 p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
 							<div className="mt-1 p-2 bg-blue-600 rounded-lg text-white">
@@ -151,7 +154,7 @@ export function Wizard() {
 							<CurrentStepComponent />
 						</motion.div>
 					</AnimatePresence>
-				</form>
+				</div>
 
 				<div className="bg-slate-50 border-t border-slate-200 px-8 py-6 flex items-center justify-between">
 					<div className="flex items-center gap-3">
@@ -233,7 +236,7 @@ export function Wizard() {
 						</button>
 					)}
 				</div>
-			</div>
+			</form>
 		</FormProvider>
 	);
 }

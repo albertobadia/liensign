@@ -200,27 +200,40 @@ export async function generateWaiverPDF(
 			const sigConfig = state.signatureConfig ?? {};
 			const maxWidth = sigConfig.maxWidth ?? 190;
 			const maxHeight = sigConfig.maxHeight ?? 50;
-			const descenderRatio = sigConfig.descenderRatio ?? 0.15;
 
 			const originalWidth = sigImage.width;
 			const originalHeight = sigImage.height;
-			const scale = Math.min(
+
+			// Base scale to fit within max bounds
+			const baseScale = Math.min(
 				maxWidth / originalWidth,
 				maxHeight / originalHeight,
 				1,
 			);
-			const scaledWidth = originalWidth * scale;
-			const scaledHeight = originalHeight * scale;
 
-			const descenderOffset = scaledHeight * descenderRatio;
-			const sigX = MARGIN + 60;
-			const sigY = ctx.yOffset - 2 + descenderOffset;
+			// User applied scale
+			const userScale = (data.signatureScale as number) ?? 1;
+			const finalScale = baseScale * userScale;
+
+			const scaledWidth = originalWidth * finalScale;
+			const scaledHeight = originalHeight * finalScale;
+
+			// Coords relative to the "By:" line start (MARGIN + 60, current yOffset - 2)
+			const offsetX = (data.signatureOffsetX as number) ?? 0;
+			const offsetY = (data.signatureOffsetY as number) ?? 0;
+			const rotation = (data.signatureRotation as number) ?? 0;
+
+			// Adjusted position
+			// In UI, +offset is DOWN. In PDF-lib, SUBTRACTING from Y moves DOWN.
+			const sigX = MARGIN + 60 + offsetX;
+			const sigY = ctx.yOffset - 2 - offsetY;
 
 			ctx.page.drawImage(sigImage, {
 				x: sigX,
 				y: sigY,
 				width: scaledWidth,
 				height: scaledHeight,
+				rotate: degrees(-rotation),
 			});
 		} catch (e) {
 			console.error("Signature embedding failed:", e);
