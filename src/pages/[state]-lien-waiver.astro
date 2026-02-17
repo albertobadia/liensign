@@ -99,7 +99,7 @@ const _jsonLd = {
                 </p>
                 <div class="flex flex-wrap gap-4">
                     <a
-                        href="/wizard"
+                        href={`/wizard?state=${stateCode}`}
                         class="rounded-full bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-blue-200 hover:bg-blue-500 transition-all active:scale-95"
                     >
                         Create {name} Waiver
@@ -145,7 +145,7 @@ const _jsonLd = {
                                 with {statute}.
                             </p>
                             <a
-                                href="/wizard"
+                                href={`/wizard?state=${stateCode}&type=${type}`}
                                 class="inline-flex items-center gap-2 text-blue-600 font-bold text-sm hover:text-blue-700 transition-colors"
                             >
                                 Use this form <ChevronRight size={16} />
