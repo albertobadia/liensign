@@ -15,8 +15,8 @@ import {
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { APP_SETTINGS } from "../../config/settings";
 import { generateWaiverPDF } from "../../lib/pdf";
+import { SUPPORTED_STATES } from "../../lib/templates";
 import { getProfile } from "../../lib/userStore";
 import { cn } from "../../lib/utils";
 import { type WizardData, wizardSchema } from "./schema";
@@ -75,7 +75,7 @@ export function Wizard() {
 		const state = params.get("state")?.toUpperCase();
 		const type = params.get("type");
 
-		if (state && APP_SETTINGS.SUPPORTED_STATES.includes(state)) {
+		if (state && SUPPORTED_STATES.includes(state)) {
 			setValue("projectState", state as WizardData["projectState"]);
 		}
 

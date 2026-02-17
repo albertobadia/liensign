@@ -24,3 +24,8 @@ export const WAIVER_TEMPLATES: Record<string, StateTemplates> = {
 	UT,
 	OTHER,
 };
+
+export const SUPPORTED_STATES = Object.keys(WAIVER_TEMPLATES) as [
+	string,
+	...string[],
+];

@@ -1,19 +1,13 @@
 import { useFormContext } from "react-hook-form";
+import { WAIVER_TEMPLATES } from "../../../lib/templates";
 import { cn } from "../../../lib/utils";
 import type { WizardData } from "../schema";
 
-const STATES = [
-	{ id: "TX", name: "Texas", statute: "Prop. Code § 53.284" },
-	{ id: "CA", name: "California", statute: "Civil Code § 8132" },
-	{ id: "FL", name: "Florida", statute: "Statutes § 713.20" },
-	{ id: "GA", name: "Georgia", statute: "Code § 44-14-366" },
-	{ id: "MI", name: "Michigan", statute: "MCL 570.1115" },
-	{ id: "NY", name: "New York", statute: "Lien Law § 34" },
-	{ id: "AZ", name: "Arizona", statute: "A.R.S. § 33-1008" },
-	{ id: "NV", name: "Nevada", statute: "NRS 108.2457" },
-	{ id: "UT", name: "Utah", statute: "Utah Code § 38-1a-802" },
-	{ id: "OTHER", name: "Other States", statute: "Standard Template" },
-];
+const STATES = Object.entries(WAIVER_TEMPLATES).map(([id, data]) => ({
+	id,
+	name: data.name,
+	statute: data.statute,
+}));
 
 export function StepProject() {
 	const {

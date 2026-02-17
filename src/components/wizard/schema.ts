@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SUPPORTED_STATES } from "../../lib/templates";
 
 export const wizardSchema = z
 	.object({
@@ -8,12 +9,9 @@ export const wizardSchema = z
 
 		projectName: z.string().min(2, "Project name is required"),
 		projectAddress: z.string().min(5, "Project address is required"),
-		projectState: z.enum(
-			["TX", "CA", "FL", "GA", "MI", "NY", "AZ", "NV", "UT", "OTHER"],
-			{
-				message: "State is required",
-			},
-		),
+		projectState: z.enum(SUPPORTED_STATES, {
+			message: "State is required",
+		}),
 		ownerName: z.string().min(2, "Owner name is required"),
 		customerName: z.string().min(2, "Customer name is required"),
 
