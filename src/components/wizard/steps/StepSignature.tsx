@@ -19,6 +19,7 @@ export function StepSignature() {
 		formState: { errors },
 	} = useFormContext<WizardData>();
 	const sigCanvas = useRef<SignatureCanvas>(null);
+	const isCanvasLoaded = useRef(false);
 	const [isAdjusting, setIsAdjusting] = useState(false);
 
 	const formData = watch();
@@ -32,10 +33,28 @@ export function StepSignature() {
 		waiverType,
 	} = formData;
 
+	// Effect 1: Load Signature (Run once on mount/ref ready)
 	useEffect(() => {
-		const currentSignature = getValues("signature");
-		if (currentSignature && sigCanvas.current) {
-			sigCanvas.current.fromDataURL(currentSignature);
+		if (sigCanvas.current && !isCanvasLoaded.current) {
+			const savedSig = getValues("signature");
+			if (savedSig) {
+				sigCanvas.current.fromDataURL(savedSig);
+			}
+			isCanvasLoaded.current = true;
+		}
+	}, [getValues]);
+
+	// Effect 2: Load Presets
+	useEffect(() => {
+		// Only load preset if we haven't manually adjusted it yet?
+		// For now, let's keep it simple and load on state change,
+		// but maybe we should check if values are already set?
+		if (
+			signatureOffsetX !== 0 ||
+			signatureOffsetY !== 0 ||
+			signatureScale !== 1
+		) {
+			return; // Don't overwrite if user has custom settings
 		}
 
 		const preset = getSignaturePreset(projectState, waiverType);
@@ -45,7 +64,14 @@ export function StepSignature() {
 			setValue("signatureScale", preset.scale);
 			setValue("signatureRotation", preset.rotation);
 		}
-	}, [getValues, projectState, waiverType, setValue]);
+	}, [
+		projectState,
+		waiverType,
+		setValue,
+		signatureOffsetX,
+		signatureOffsetY,
+		signatureScale,
+	]);
 
 	const clearSignature = () => {
 		sigCanvas.current?.clear();

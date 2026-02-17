@@ -7,6 +7,7 @@ import {
 	StandardFonts,
 } from "pdf-lib";
 import { WAIVER_TEMPLATES } from "./templates";
+import type { StateTemplates, WaiverTemplate } from "./templates/types";
 
 const PAGE_WIDTH = 612;
 const PAGE_HEIGHT = 792;
@@ -30,15 +31,7 @@ function addNewPage(ctx: PageContext): void {
 	ctx.yOffset = PAGE_HEIGHT - MARGIN;
 
 	if (ctx.watermark) {
-		ctx.page.drawText(ctx.watermark, {
-			x: PAGE_WIDTH / 2 - 150,
-			y: PAGE_HEIGHT / 2,
-			size: 80,
-			font: ctx.boldFont,
-			color: rgb(0.9, 0.9, 0.9),
-			rotate: degrees(45),
-			opacity: 0.5,
-		});
+		drawWatermark(ctx);
 	}
 }
 
@@ -46,6 +39,19 @@ function ensureSpace(ctx: PageContext, needed: number): void {
 	if (ctx.yOffset - needed < BOTTOM_MARGIN) {
 		addNewPage(ctx);
 	}
+}
+
+function drawWatermark(ctx: PageContext): void {
+	if (!ctx.watermark) return;
+	ctx.page.drawText(ctx.watermark, {
+		x: PAGE_WIDTH / 2 - 150,
+		y: PAGE_HEIGHT / 2,
+		size: 80,
+		font: ctx.boldFont,
+		color: rgb(0.9, 0.9, 0.9),
+		rotate: degrees(45),
+		opacity: 0.5,
+	});
 }
 
 function addPageFooter(ctx: PageContext): void {
@@ -58,53 +64,12 @@ function addPageFooter(ctx: PageContext): void {
 	});
 }
 
-export async function generateWaiverPDF(
-	stateCode: string,
-	formType:
-		| "conditional_progress"
-		| "unconditional_progress"
-		| "conditional_final"
-		| "unconditional_final",
-	data: Record<string, string | number | boolean | undefined>,
-	signatureBase64?: string,
-	watermark?: string,
-) {
-	const state = WAIVER_TEMPLATES[stateCode];
-	if (!state) throw new Error(`State ${stateCode} not supported`);
-
-	const template = state.forms[formType];
-	const pdfDoc = await PDFDocument.create();
-	const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-
-	const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-	const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
-	const ctx: PageContext = {
-		pdfDoc,
-		page,
-		yOffset: PAGE_HEIGHT - MARGIN,
-		font,
-		boldFont,
-		watermark,
-	};
-
-	if (watermark) {
-		ctx.page.drawText(watermark, {
-			x: PAGE_WIDTH / 2 - 150,
-			y: PAGE_HEIGHT / 2,
-			size: 80,
-			font: boldFont,
-			color: rgb(0.9, 0.9, 0.9),
-			rotate: degrees(45),
-			opacity: 0.5,
-		});
-	}
-
+function drawHeader(ctx: PageContext, template: WaiverTemplate): void {
 	ctx.page.drawText(template.title, {
 		x: MARGIN,
 		y: ctx.yOffset,
 		size: 14,
-		font: boldFont,
+		font: ctx.boldFont,
 	});
 	ctx.yOffset -= 30;
 
@@ -114,7 +79,7 @@ export async function generateWaiverPDF(
 			? template.notice.toUpperCase()
 			: template.notice;
 		const noticeFontSize = style.fontSize || 10;
-		const noticeFont = style.isBold ? boldFont : font;
+		const noticeFont = style.isBold ? ctx.boldFont : ctx.font;
 		const noticeLineHeight = noticeFontSize + 3;
 
 		const noticeLines = wrapText(
@@ -135,7 +100,14 @@ export async function generateWaiverPDF(
 		}
 		ctx.yOffset -= 15;
 	}
+}
 
+function drawBody(
+	ctx: PageContext,
+	template: WaiverTemplate,
+	state: StateTemplates,
+	data: Record<string, string | number | boolean | undefined>,
+): void {
 	let bodyText = template.body;
 	for (const [key, value] of Object.entries(data)) {
 		const stringValue = String(value ?? "");
@@ -144,7 +116,7 @@ export async function generateWaiverPDF(
 
 	const bodyFontSize = state.baseFontSize || 11;
 	const bodyLineHeight = bodyFontSize + 3;
-	const bodyLines = wrapText(bodyText, CONTENT_WIDTH, font, bodyFontSize);
+	const bodyLines = wrapText(bodyText, CONTENT_WIDTH, ctx.font, bodyFontSize);
 
 	for (const line of bodyLines) {
 		ensureSpace(ctx, bodyLineHeight);
@@ -152,21 +124,29 @@ export async function generateWaiverPDF(
 			x: MARGIN,
 			y: ctx.yOffset,
 			size: bodyFontSize,
-			font,
+			font: ctx.font,
 		});
 		ctx.yOffset -= bodyLineHeight;
 	}
+}
 
+async function drawSignatureBlock(
+	ctx: PageContext,
+	state: StateTemplates,
+	data: Record<string, string | number | boolean | undefined>,
+	signatureBase64?: string,
+): Promise<void> {
 	const signatureBlockHeight = signatureBase64 ? 130 : 80;
 	ensureSpace(ctx, signatureBlockHeight);
 
 	ctx.yOffset -= 50;
 
+	// Date Line
 	ctx.page.drawText("Dated:", {
 		x: MARGIN,
 		y: ctx.yOffset,
 		size: 12,
-		font: boldFont,
+		font: ctx.boldFont,
 	});
 	ctx.page.drawText(
 		new Date().toLocaleDateString("en-US", {
@@ -178,12 +158,13 @@ export async function generateWaiverPDF(
 			x: MARGIN + 60,
 			y: ctx.yOffset,
 			size: 11,
-			font,
+			font: ctx.font,
 		},
 	);
 
 	ctx.yOffset -= 40;
 
+	// Signature Image
 	if (signatureBase64) {
 		try {
 			const cleanBase64 = signatureBase64.replace(
@@ -195,7 +176,7 @@ export async function generateWaiverPDF(
 			for (let i = 0; i < binaryString.length; i++) {
 				bytes[i] = binaryString.charCodeAt(i);
 			}
-			const sigImage = await pdfDoc.embedPng(bytes);
+			const sigImage = await ctx.pdfDoc.embedPng(bytes);
 
 			const sigConfig = state.signatureConfig ?? {};
 			const maxWidth = sigConfig.maxWidth ?? 190;
@@ -204,14 +185,11 @@ export async function generateWaiverPDF(
 			const originalWidth = sigImage.width;
 			const originalHeight = sigImage.height;
 
-			// Base scale to fit within max bounds
 			const baseScale = Math.min(
 				maxWidth / originalWidth,
 				maxHeight / originalHeight,
 				1,
 			);
-
-			// User applied scale
 			const userScale = (data.signatureScale as number) ?? 1;
 			const finalScale = baseScale * userScale;
 
@@ -222,7 +200,6 @@ export async function generateWaiverPDF(
 			const offsetY = (data.signatureOffsetY as number) ?? 0;
 			const rotation = (data.signatureRotation as number) ?? 0;
 
-			// Calculate final coordinates relative to the "By:" baseline
 			const sigX = MARGIN + 60 + offsetX;
 			const sigY = ctx.yOffset - 2 - offsetY;
 
@@ -238,11 +215,12 @@ export async function generateWaiverPDF(
 		}
 	}
 
+	// Signature Line
 	ctx.page.drawText("By:", {
 		x: MARGIN,
 		y: ctx.yOffset,
 		size: 12,
-		font: boldFont,
+		font: ctx.boldFont,
 	});
 	ctx.page.drawLine({
 		start: { x: MARGIN + 60, y: ctx.yOffset - 2 },
@@ -250,12 +228,13 @@ export async function generateWaiverPDF(
 		thickness: 1,
 	});
 
+	// Optional Seal
 	if (state.sealRequired) {
 		ctx.page.drawText("(SEAL)", {
 			x: MARGIN + 260,
 			y: ctx.yOffset,
 			size: 10,
-			font,
+			font: ctx.font,
 		});
 	}
 
@@ -264,12 +243,8 @@ export async function generateWaiverPDF(
 		x: MARGIN + 140,
 		y: ctx.yOffset,
 		size: 8,
-		font,
+		font: ctx.font,
 	});
-
-	addPageFooter(ctx);
-
-	return await pdfDoc.save();
 }
 
 function wrapText(
@@ -305,4 +280,46 @@ function wrapText(
 		}
 	}
 	return lines;
+}
+
+export async function generateWaiverPDF(
+	stateCode: string,
+	formType:
+		| "conditional_progress"
+		| "unconditional_progress"
+		| "conditional_final"
+		| "unconditional_final",
+	data: Record<string, string | number | boolean | undefined>,
+	signatureBase64?: string,
+	watermark?: string,
+) {
+	const state = WAIVER_TEMPLATES[stateCode];
+	if (!state) throw new Error(`State ${stateCode} not supported`);
+
+	const template = state.forms[formType];
+	const pdfDoc = await PDFDocument.create();
+	const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+
+	const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+	const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+	const ctx: PageContext = {
+		pdfDoc,
+		page,
+		yOffset: PAGE_HEIGHT - MARGIN,
+		font,
+		boldFont,
+		watermark,
+	};
+
+	if (watermark) {
+		drawWatermark(ctx);
+	}
+
+	drawHeader(ctx, template);
+	drawBody(ctx, template, state, data);
+	await drawSignatureBlock(ctx, state, data, signatureBase64);
+	addPageFooter(ctx);
+
+	return await pdfDoc.save();
 }
