@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { generateWaiverPDF } from "../../lib/pdf";
+import { sanitizeFilename } from "../../lib/utils";
 import {
 	deleteWaiver,
 	getWaivers,
@@ -32,7 +33,6 @@ export function WaiverHistory() {
 			} catch (error) {
 				console.error("Failed to load waivers:", error);
 				toast.error("Failed to load waiver history");
-			} finally {
 			}
 		};
 		loadWaivers();
@@ -69,7 +69,7 @@ export function WaiverHistory() {
 			const url = URL.createObjectURL(blob);
 			const link = document.createElement("a");
 			link.href = url;
-			link.download = `LienWaiver-${record.data.projectName.replace(/\s+/g, "-")}.pdf`;
+			link.download = `LienWaiver-${sanitizeFilename(record.data.projectName)}.pdf`;
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);

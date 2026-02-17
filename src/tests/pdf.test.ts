@@ -68,7 +68,6 @@ describe("PDF Generation: generateWaiverPDF", () => {
 	});
 
 	it("should embed and scale signature correctly", async () => {
-		// @ts-expect-error - Mocked PDFDocument has different internal structure
 		const pdfDoc = await vi.mocked(PDFDocument.create)();
 		const page = pdfDoc.addPage();
 		const signature =
@@ -95,38 +94,6 @@ describe("PDF Generation: generateWaiverPDF", () => {
 				x: 110, // MARGIN(50) + 60
 			}),
 		);
-	});
-
-	it("should apply descender offset to signature Y position", async () => {
-		// @ts-expect-error - Mocked PDFDocument has different internal structure
-		const pdfDoc = await vi.mocked(PDFDocument.create)();
-		const page = pdfDoc.addPage();
-		const signature =
-			"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
-
-		// Mock image dimensions: 200x100 (fits width, exceeds height)
-		// @ts-expect-error - Mocking partial return value
-		vi.mocked(pdfDoc.embedPng).mockResolvedValueOnce({
-			width: 200,
-			height: 100,
-		});
-
-		await generateWaiverPDF("CA", "unconditional_final", mockData, signature);
-
-		// scale = min(190/200, 50/100) = 0.5
-		// height = 100 * 0.5 = 50
-		// descenderRatio = 0.15 -> offset = 50 * 0.15 = 7.5
-		// sigY = ctx.yOffset - 2 + 7.5
-		expect(page.drawImage).toHaveBeenCalledWith(
-			expect.anything(),
-			expect.objectContaining({
-				y: expect.any(Number),
-			}),
-		);
-
-		const calls = vi.mocked(page.drawImage).mock.calls;
-		const lastCallArgs = calls[calls.length - 1][1];
-		expect(lastCallArgs.y).toBeGreaterThan(0);
 	});
 
 	it("should apply a watermark if provided", async () => {

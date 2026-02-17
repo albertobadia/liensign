@@ -19,7 +19,6 @@ export interface StateTemplates {
 	signatureConfig?: {
 		maxWidth?: number;
 		maxHeight?: number;
-		descenderRatio?: number;
 	};
 	sealRequired?: boolean;
 	forms: {

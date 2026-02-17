@@ -122,6 +122,7 @@ export function useWizard(steps: typeof STEPS) {
 			const url = URL.createObjectURL(blob);
 			window.open(url, "_blank");
 			toast.success("Document preview opened in a new tab.", { id: toastId });
+			setTimeout(() => URL.revokeObjectURL(url), 60000);
 		} catch (error: unknown) {
 			console.error("Preview error:", error);
 			toast.error("Failed to generate preview.", { id: toastId });
@@ -244,7 +245,13 @@ export function useWizard(steps: typeof STEPS) {
 	};
 
 	const handleCreateAnother = () => {
-		reset({ waiverType: "conditional_progress" });
+		reset({
+			waiverType: "conditional_progress",
+			signatureOffsetX: 0,
+			signatureOffsetY: 0,
+			signatureScale: 1,
+			signatureRotation: 0,
+		});
 		setCurrentStep(0);
 		setIsComplete(false);
 	};

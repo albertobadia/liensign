@@ -43,10 +43,12 @@ function ensureSpace(ctx: PageContext, needed: number): void {
 
 function drawWatermark(ctx: PageContext): void {
 	if (!ctx.watermark) return;
+	const fontSize = 80;
+	const textWidth = ctx.boldFont.widthOfTextAtSize(ctx.watermark, fontSize);
 	ctx.page.drawText(ctx.watermark, {
-		x: PAGE_WIDTH / 2 - 150,
+		x: PAGE_WIDTH / 2 - textWidth / 2,
 		y: PAGE_HEIGHT / 2,
-		size: 80,
+		size: fontSize,
 		font: ctx.boldFont,
 		color: rgb(0.9, 0.9, 0.9),
 		rotate: degrees(45),

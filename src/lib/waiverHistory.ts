@@ -5,6 +5,7 @@ import { deleteOne, getAll, getOne, putOne } from "./db";
 const waiverRecordSchema = z.object({
 	id: z.string(),
 	createdAt: z.string(),
+	updatedAt: z.string().optional(),
 	data: wizardSchema,
 });
 
@@ -75,7 +76,7 @@ export async function updateWaiver(
 	const updatedRecord: WaiverRecord = {
 		...record,
 		data,
-		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
 	};
 	await putOne(STORE_NAME, updatedRecord);
 }

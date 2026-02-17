@@ -50,6 +50,13 @@ export interface SignaturePreset {
 	rotation: number;
 }
 
+const signaturePresetSchema = z.object({
+	offsetX: z.number(),
+	offsetY: z.number(),
+	scale: z.number(),
+	rotation: z.number(),
+});
+
 const PRESET_KEY_PREFIX = "liensign_sig_preset_";
 
 export function saveSignaturePreset(
@@ -71,7 +78,8 @@ export function getSignaturePreset(
 	const data = localStorage.getItem(key);
 	if (!data) return null;
 	try {
-		return JSON.parse(data) as SignaturePreset;
+		const parsed = signaturePresetSchema.safeParse(JSON.parse(data));
+		return parsed.success ? parsed.data : null;
 	} catch {
 		return null;
 	}

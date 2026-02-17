@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	clearProfile,
 	getProfile,
+	getSignaturePreset,
 	hasProfile,
 	saveProfile,
 	type UserProfile,
@@ -69,5 +70,31 @@ describe("userStore: localStorage persistence", () => {
 		expect(consoleSpy).toHaveBeenCalled();
 
 		consoleSpy.mockRestore();
+	});
+
+	it("should validate signature preset data", () => {
+		// Valid data
+		const validData = JSON.stringify({
+			offsetX: 10,
+			offsetY: 20,
+			scale: 1,
+			rotation: 0,
+		});
+		vi.mocked(localStorage.getItem).mockReturnValue(validData);
+		expect(getSignaturePreset("CA", "conditional_progress")).toEqual({
+			offsetX: 10,
+			offsetY: 20,
+			scale: 1,
+			rotation: 0,
+		});
+
+		// Invalid schema (missing fields)
+		const invalidData = JSON.stringify({ foo: "bar" });
+		vi.mocked(localStorage.getItem).mockReturnValue(invalidData);
+		expect(getSignaturePreset("CA", "conditional_progress")).toBeNull();
+
+		// Invalid JSON
+		vi.mocked(localStorage.getItem).mockReturnValue("{invalid json");
+		expect(getSignaturePreset("CA", "conditional_progress")).toBeNull();
 	});
 });

@@ -13,7 +13,6 @@ import {
 	User,
 } from "lucide-react";
 import { FormProvider } from "react-hook-form";
-import { getProfile } from "../../lib/userStore";
 import { cn } from "../../lib/utils";
 import { STEPS } from "./config";
 import { useWizard } from "./useWizard";
@@ -121,7 +120,7 @@ export function Wizard() {
 				</div>
 
 				<div className="p-4 sm:p-8 min-h-[450px]">
-					{!getProfile() && currentStep === 0 && (
+					{!methods.getValues("contractorName") && currentStep === 0 && (
 						<div className="mb-8 p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
 							<div className="mt-1 p-2 bg-blue-600 rounded-lg text-white">
 								<User size={16} />
