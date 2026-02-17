@@ -14,9 +14,7 @@ describe("Wizard Schema Validation", () => {
 		waiverType: "conditional_progress",
 		paymentAmount: "1000",
 		throughDate: "2026-02-15",
-		recipientEmail: "client@example.com",
 		signature: "data:image/png;base64,fake_signature_data",
-		// New mandatory fields for TX/Conditional
 		jobNumber: "2024-001",
 		jobDescription: "General Contracting",
 		maker: "Property Owner LLC",
@@ -44,7 +42,6 @@ describe("Wizard Schema Validation", () => {
 		const result = wizardSchema.safeParse({ ...validData, projectState: "XX" });
 		expect(result.success).toBe(false);
 		if (!result.success) {
-			// Zod default error for invalid enum (overridden by message param)
 			expect(result.error.issues[0].message).toBe("State is required");
 		}
 	});

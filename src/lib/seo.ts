@@ -1,7 +1,3 @@
-/**
- * SEO Utility helpers
- */
-
 export function getCanonicalURL(
 	pathname: string,
 	site: URL | string | undefined,

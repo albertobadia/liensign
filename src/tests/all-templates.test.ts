@@ -9,7 +9,6 @@ const FORM_TYPES = [
 	"unconditional_final",
 ] as const;
 
-// Mock data that covers all known fields in all templates
 const MOCK_DATA = {
 	contractorName: "Acme Corp",
 	contractorAddress: "123 Contractor St",
@@ -37,8 +36,6 @@ describe("Exhaustive Template Field Replacement Test", () => {
 			const form = state.forms[formType];
 			let bodyText = form.body;
 
-			// Perform replacement using the same logic as pdf.ts
-			// 1. Defined fields
 			for (const field of form.fields) {
 				const value =
 					(MOCK_DATA as Record<string, string>)[field] ||
@@ -46,14 +43,12 @@ describe("Exhaustive Template Field Replacement Test", () => {
 				bodyText = bodyText.replaceAll(`{{${field}}}`, value);
 			}
 
-			// 2. All data keys (safety pass)
 			for (const [key, value] of Object.entries(MOCK_DATA)) {
 				if (typeof value === "string") {
 					bodyText = bodyText.replaceAll(`{{${key}}}`, value);
 				}
 			}
 
-			// ASSERTION: No {{placeholder}} should remain
 			const remainingPlaceholders = bodyText.match(/{{.*?}}/g);
 
 			expect(
@@ -69,20 +64,16 @@ describe("Exhaustive Template Field Replacement Test", () => {
 			const form = state.forms.conditional_progress;
 			let bodyText = form.body;
 
-			// MOCK_DATA but without jobNumber
 			const sparseData: Record<string, string> = { ...MOCK_DATA };
 			delete sparseData.jobNumber;
 
-			// Perform replacement (Simulating pdf.ts logic)
 			for (const field of form.fields) {
 				const value = sparseData[field] || "";
 				bodyText = bodyText.replaceAll(`{{${field}}}`, value);
 			}
 
-			// ASSERTION: No [JOBNUMBER] or {{jobNumber}} should remain
 			expect(bodyText).not.toContain("[JOBNUMBER]");
 			expect(bodyText).not.toContain("{{jobNumber}}");
-			// It should just be empty after "Job No.: "
 			expect(bodyText).toContain("Job No.: \n");
 		});
 	});

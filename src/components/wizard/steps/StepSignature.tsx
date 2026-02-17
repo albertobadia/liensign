@@ -43,7 +43,6 @@ export function StepSignature() {
 			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				{/* Contractor & Project Summary */}
 				<div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 space-y-4 relative overflow-hidden">
 					<div className="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 rounded-bl-xl text-[10px] font-bold tracking-widest uppercase">
 						{formData.projectState} Law
@@ -74,7 +73,6 @@ export function StepSignature() {
 					</div>
 				</div>
 
-				{/* Financials Summary */}
 				<div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100 space-y-4">
 					<div>
 						<span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">

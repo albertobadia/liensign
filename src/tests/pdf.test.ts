@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { generateWaiverPDF } from "../lib/pdf";
 
-// Mock pdf-lib to avoid heavy processing in unit tests
 vi.mock("pdf-lib", () => ({
 	PDFDocument: {
 		create: vi.fn().mockResolvedValue({

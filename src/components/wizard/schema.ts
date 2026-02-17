@@ -29,13 +29,11 @@ export const wizardSchema = z
 
 		signature: z.string().min(1, "Signature is required"),
 
-		// Optional specialized fields for specific states
 		jobNumber: z.string().optional(),
 		maker: z.string().optional(),
 		jobDescription: z.string().optional(),
 	})
 	.superRefine((data, ctx) => {
-		// Job Number is required for Texas statutory forms
 		if (data.projectState === "TX" && !data.jobNumber) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
@@ -44,7 +42,6 @@ export const wizardSchema = z
 			});
 		}
 
-		// Job Description is required for TX and NV
 		if (
 			(data.projectState === "TX" || data.projectState === "NV") &&
 			!data.jobDescription
@@ -56,7 +53,6 @@ export const wizardSchema = z
 			});
 		}
 
-		// Maker of check is highly recommended/required for Conditional waivers in several states
 		if (
 			(data.projectState === "TX" ||
 				data.projectState === "CA" ||

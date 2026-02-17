@@ -135,7 +135,6 @@ export function StepFinancials() {
 				</div>
 			</div>
 
-			{/* Statutory Specific Field: Maker of Check (Required for Conditional in some states) */}
 			{(projectState === "CA" ||
 				projectState === "AZ" ||
 				projectState === "NV" ||

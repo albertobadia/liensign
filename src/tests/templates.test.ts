@@ -1,18 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { WAIVER_TEMPLATES } from "../lib/templates";
+import { SUPPORTED_STATES, WAIVER_TEMPLATES } from "../lib/templates";
 
-const SUPPORTED_STATES = [
-	"TX",
-	"CA",
-	"FL",
-	"GA",
-	"MI",
-	"NY",
-	"AZ",
-	"NV",
-	"UT",
-	"OTHER",
-];
 const FORM_TYPES = [
 	"conditional_progress",
 	"unconditional_progress",

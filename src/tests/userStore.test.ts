@@ -16,7 +16,6 @@ const mockProfile: UserProfile = {
 
 describe("userStore: localStorage persistence", () => {
 	beforeEach(() => {
-		// Mock window and localStorage
 		vi.stubGlobal("window", {});
 		vi.stubGlobal("localStorage", {
 			getItem: vi.fn(),
