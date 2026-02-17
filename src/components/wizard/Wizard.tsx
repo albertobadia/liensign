@@ -7,9 +7,13 @@ import {
 	Check,
 	ChevronLeft,
 	ChevronRight,
+	CircleCheckBig,
+	Download,
 	Eye,
 	FileText,
+	History,
 	Loader2,
+	Plus,
 	User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -19,6 +23,7 @@ import { generateWaiverPDF } from "../../lib/pdf";
 import { SUPPORTED_STATES } from "../../lib/templates";
 import { getProfile } from "../../lib/userStore";
 import { cn } from "../../lib/utils";
+import { getWaiver, saveWaiver, updateWaiver } from "../../lib/waiverHistory";
 import { type WizardData, wizardSchema } from "./schema";
 import { StepContractor } from "./steps/StepContractor";
 import { StepFinancials } from "./steps/StepFinancials";
@@ -50,6 +55,8 @@ const STEPS = [
 export function Wizard() {
 	const [currentStep, setCurrentStep] = useState(0);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isComplete, setIsComplete] = useState(false);
+	const [editingId, setEditingId] = useState<string | null>(null);
 
 	const methods = useForm<WizardData>({
 		// @ts-expect-error: Zod 4 compatibility with hookform resolvers v3/v5 metadata check
@@ -63,6 +70,22 @@ export function Wizard() {
 	const { trigger, handleSubmit, setValue } = methods;
 
 	useEffect(() => {
+		const params = new URLSearchParams(window.location.search);
+		const editId = params.get("edit");
+		const state = params.get("state")?.toUpperCase();
+		const type = params.get("type");
+
+		if (editId) {
+			const record = getWaiver(editId);
+			if (record) {
+				setEditingId(editId);
+				for (const [key, value] of Object.entries(record.data)) {
+					setValue(key as keyof WizardData, value);
+				}
+				return;
+			}
+		}
+
 		const profile = getProfile();
 		if (profile) {
 			setValue("contractorName", profile.contractorName);
@@ -70,10 +93,6 @@ export function Wizard() {
 			setValue("contractorPhone", profile.contractorPhone);
 			setValue("signature", profile.signature);
 		}
-
-		const params = new URLSearchParams(window.location.search);
-		const state = params.get("state")?.toUpperCase();
-		const type = params.get("type");
 
 		if (state && SUPPORTED_STATES.includes(state)) {
 			setValue("projectState", state as WizardData["projectState"]);
@@ -122,16 +141,20 @@ export function Wizard() {
 		const isStepValid = await trigger();
 
 		if (!isStepValid) {
+			const errors = methods.formState.errors;
+			console.error("Preview validation failed:", errors);
 			toast.error("Please fix errors before previewing.");
 			return;
 		}
 
 		if (!data.signature) {
+			console.error("Preview failed: No signature");
 			toast.error("Please sign the document before previewing.");
 			return;
 		}
 
 		setIsSubmitting(true);
+		const toastId = toast.loading("Generating preview...");
 		try {
 			const pdfBytes = await generateWaiverPDF(
 				data.projectState,
@@ -145,10 +168,10 @@ export function Wizard() {
 			});
 			const url = URL.createObjectURL(blob);
 			window.open(url, "_blank");
-			toast.success("Document preview opened in a new tab.");
+			toast.success("Document preview opened in a new tab.", { id: toastId });
 		} catch (error: unknown) {
 			console.error("Preview error:", error);
-			toast.error("Failed to generate preview.");
+			toast.error("Failed to generate preview.", { id: toastId });
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -156,6 +179,7 @@ export function Wizard() {
 
 	const onSubmit = async (data: WizardData) => {
 		setIsSubmitting(true);
+		const toastId = toast.loading("Generating and downloading waiver...");
 
 		try {
 			const pdfBytes = await generateWaiverPDF(
@@ -176,19 +200,72 @@ export function Wizard() {
 			link.click();
 			document.body.removeChild(link);
 			URL.revokeObjectURL(url);
-
-			toast.success("Success! Your waiver has been generated and downloaded.");
+			if (editingId) {
+				updateWaiver(editingId, data);
+			} else {
+				saveWaiver(data);
+			}
+			setIsComplete(true);
+			toast.success("Waiver generated successfully!", { id: toastId });
 		} catch (error: unknown) {
 			console.error("Generation error:", error);
 			const errorMessage =
 				error instanceof Error ? error.message : "Failed to generate document";
-			toast.error(`Error: ${errorMessage}`);
+			toast.error(`Error: ${errorMessage}`, { id: toastId });
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
+	const onInvalid = () => {
+		const errors = methods.formState.errors;
+		console.error("Validation failed:", errors);
+		toast.error("Please fix errors in previous steps before continuing.");
+	};
+	const handleCreateAnother = () => {
+		methods.reset({ waiverType: "conditional_progress" });
+		setCurrentStep(0);
+		setIsComplete(false);
+	};
 
 	const CurrentStepComponent = STEPS[currentStep].component;
+
+	if (isComplete) {
+		return (
+			<div className="bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden">
+				<div className="p-8 sm:p-12 flex flex-col items-center text-center space-y-6">
+					<div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center">
+						<CircleCheckBig size={40} className="text-green-600" />
+					</div>
+					<div className="space-y-2">
+						<h2 className="text-2xl font-bold text-slate-900 font-serif">
+							Waiver Downloaded!
+						</h2>
+						<p className="text-slate-600 max-w-md">
+							Your lien waiver has been generated and saved to your downloads
+							folder.
+						</p>
+					</div>
+					<div className="flex flex-col sm:flex-row gap-3 pt-4">
+						<button
+							type="button"
+							onClick={handleCreateAnother}
+							className="flex items-center justify-center gap-2 px-8 py-3 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 transition-all active:scale-95"
+						>
+							<Plus size={18} />
+							Create Another
+						</button>
+						<a
+							href="/history"
+							className="flex items-center justify-center gap-2 px-8 py-3 rounded-xl text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all active:scale-95"
+						>
+							<History size={18} />
+							View History
+						</a>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<FormProvider {...methods}>
@@ -199,7 +276,7 @@ export function Wizard() {
 
 						{STEPS.map((step, idx) => {
 							const Icon = step.icon;
-							const isComplete = idx < currentStep;
+							const stepComplete = idx < currentStep;
 							const isActive = idx === currentStep;
 
 							return (
@@ -210,16 +287,16 @@ export function Wizard() {
 									<div
 										className={cn(
 											"h-10 w-10 rounded-full flex items-center justify-center transition-all duration-300",
-											isComplete ? "bg-green-500 text-white" : "",
+											stepComplete ? "bg-green-500 text-white" : "",
 											isActive
 												? "bg-blue-600 text-white ring-4 ring-blue-100"
 												: "",
-											!isComplete && !isActive
+											!stepComplete && !isActive
 												? "bg-slate-200 text-slate-500"
 												: "",
 										)}
 									>
-										{isComplete ? <Check size={20} /> : <Icon size={20} />}
+										{stepComplete ? <Check size={20} /> : <Icon size={20} />}
 									</div>
 									<span
 										className={cn(
@@ -307,7 +384,7 @@ export function Wizard() {
 						type="button"
 						onClick={
 							currentStep === STEPS.length - 1
-								? handleSubmit(onSubmit)
+								? handleSubmit(onSubmit, onInvalid)
 								: handleNext
 						}
 						disabled={isSubmitting}
@@ -323,11 +400,14 @@ export function Wizard() {
 								<Loader2 className="animate-spin" size={18} />
 								Generating...
 							</>
+						) : currentStep === STEPS.length - 1 ? (
+							<>
+								<Download size={18} />
+								Download
+							</>
 						) : (
 							<>
-								{currentStep === STEPS.length - 1
-									? "Finish & Generate"
-									: "Continue"}
+								Continue
 								<ChevronRight size={18} />
 							</>
 						)}

@@ -1,0 +1,27 @@
+---
+import { WaiverHistory } from "../components/history/WaiverHistory";
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+    title="Waiver History | LienSign"
+    description="View and manage your previously generated lien waivers."
+>
+    <div
+        class="min-h-[calc(100vh-16rem)] flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8"
+    >
+        <div class="max-w-4xl w-full space-y-8">
+            <div class="space-y-2">
+                <h1 class="text-3xl font-bold text-slate-900 font-serif">
+                    Waiver History
+                </h1>
+                <p class="text-slate-600">
+                    Manage your previously generated lien waivers. You can edit,
+                    re-download, or delete them from your local history.
+                </p>
+            </div>
+
+            <WaiverHistory client:only="react" />
+        </div>
+    </div>
+</Layout>

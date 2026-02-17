@@ -16,6 +16,11 @@ export interface StateTemplates {
 	lastVerified: string;
 	sourceUrl: string;
 	baseFontSize?: number;
+	signatureConfig?: {
+		maxWidth?: number;
+		maxHeight?: number;
+		descenderRatio?: number;
+	};
 	forms: {
 		conditional_progress: WaiverTemplate;
 		unconditional_progress: WaiverTemplate;

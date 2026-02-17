@@ -154,6 +154,11 @@ export function StepFinancials() {
 							placeholder="Full Name / Company"
 							className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
 						/>
+						{errors.maker && (
+							<p className="text-red-500 text-xs mt-1">
+								{errors.maker.message}
+							</p>
+						)}
 						<p className="text-[10px] text-slate-400 mt-2 italic">
 							* Required or recommended for statutory compliance in conditional
 							waivers for this state.

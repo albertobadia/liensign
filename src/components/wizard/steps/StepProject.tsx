@@ -30,12 +30,9 @@ export function StepProject() {
 
 			<div className="space-y-6">
 				<div>
-					<label
-						htmlFor="state-TX"
-						className="block text-sm font-semibold text-slate-700 mb-3"
-					>
+					<span className="block text-sm font-semibold text-slate-700 mb-3">
 						Project State (Governing Law)
-					</label>
+					</span>
 					<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
 						{STATES.map((state) => (
 							<label
@@ -163,7 +160,8 @@ export function StepProject() {
 							htmlFor="jobNumber"
 							className="block text-sm font-semibold text-slate-700 mb-1"
 						>
-							Job / Project Number (Optional)
+							Job / Project Number{" "}
+							{selectedState === "TX" ? "(Required)" : "(Optional)"}
 						</label>
 						<input
 							id="jobNumber"
@@ -171,6 +169,11 @@ export function StepProject() {
 							placeholder="e.g. 2024-001"
 							className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
 						/>
+						{errors.jobNumber && (
+							<p className="text-red-500 text-xs mt-1">
+								{errors.jobNumber.message}
+							</p>
+						)}
 					</div>
 
 					{(selectedState === "TX" || selectedState === "NV") && (

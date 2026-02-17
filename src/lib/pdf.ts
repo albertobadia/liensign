@@ -202,12 +202,31 @@ export async function generateWaiverPDF(
 				bytes[i] = binaryString.charCodeAt(i);
 			}
 			const sigImage = await pdfDoc.embedPng(bytes);
-			const sigDims = sigImage.scale(0.5);
+
+			const sigConfig = state.signatureConfig ?? {};
+			const maxWidth = sigConfig.maxWidth ?? 190;
+			const maxHeight = sigConfig.maxHeight ?? 50;
+			const descenderRatio = sigConfig.descenderRatio ?? 0.15;
+
+			const originalWidth = sigImage.width;
+			const originalHeight = sigImage.height;
+			const scale = Math.min(
+				maxWidth / originalWidth,
+				maxHeight / originalHeight,
+				1,
+			);
+			const scaledWidth = originalWidth * scale;
+			const scaledHeight = originalHeight * scale;
+
+			const descenderOffset = scaledHeight * descenderRatio;
+			const sigX = MARGIN + 60;
+			const sigY = ctx.yOffset - 2 + descenderOffset;
+
 			ctx.page.drawImage(sigImage, {
-				x: MARGIN + 100,
-				y: ctx.yOffset - 10,
-				width: sigDims.width,
-				height: sigDims.height,
+				x: sigX,
+				y: sigY,
+				width: scaledWidth,
+				height: scaledHeight,
 			});
 		} catch (e) {
 			console.error("Signature embedding failed:", e);

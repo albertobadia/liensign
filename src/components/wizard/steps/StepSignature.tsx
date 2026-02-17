@@ -120,6 +120,7 @@ export function StepSignature() {
 						onEnd={saveSignature}
 						penColor="#1e293b"
 						canvasProps={{
+							id: "signature-input",
 							className: "w-full h-full cursor-crosshair",
 							title: "Signature Pad",
 						}}
