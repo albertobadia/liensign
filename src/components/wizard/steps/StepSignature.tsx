@@ -5,17 +5,17 @@ import SignatureCanvas from "react-signature-canvas";
 import type { WizardData } from "../schema";
 
 export function StepSignature() {
-	const { watch, setValue } = useFormContext<WizardData>();
+	const { watch, setValue, getValues } = useFormContext<WizardData>();
 	const sigCanvas = useRef<SignatureCanvas>(null);
 
 	const formData = watch();
 
-	// Load existing signature on mount
 	useEffect(() => {
-		if (formData.signature && sigCanvas.current) {
-			sigCanvas.current.fromDataURL(formData.signature);
+		const currentSignature = getValues("signature");
+		if (currentSignature && sigCanvas.current) {
+			sigCanvas.current.fromDataURL(currentSignature);
 		}
-	}, [formData.signature]);
+	}, [getValues]);
 
 	const clearSignature = () => {
 		sigCanvas.current?.clear();
