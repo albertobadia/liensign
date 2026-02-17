@@ -2,10 +2,61 @@ import {
 	degrees,
 	PDFDocument,
 	type PDFFont,
+	type PDFPage,
 	rgb,
 	StandardFonts,
 } from "pdf-lib";
 import { WAIVER_TEMPLATES } from "./templates";
+
+const PAGE_WIDTH = 612;
+const PAGE_HEIGHT = 792;
+const MARGIN = 50;
+const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
+const BOTTOM_MARGIN = 60;
+
+interface PageContext {
+	pdfDoc: PDFDocument;
+	page: PDFPage;
+	yOffset: number;
+	font: PDFFont;
+	boldFont: PDFFont;
+	watermark?: string;
+}
+
+function addNewPage(ctx: PageContext): void {
+	addPageFooter(ctx);
+
+	ctx.page = ctx.pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+	ctx.yOffset = PAGE_HEIGHT - MARGIN;
+
+	if (ctx.watermark) {
+		ctx.page.drawText(ctx.watermark, {
+			x: PAGE_WIDTH / 2 - 150,
+			y: PAGE_HEIGHT / 2,
+			size: 80,
+			font: ctx.boldFont,
+			color: rgb(0.9, 0.9, 0.9),
+			rotate: degrees(45),
+			opacity: 0.5,
+		});
+	}
+}
+
+function ensureSpace(ctx: PageContext, needed: number): void {
+	if (ctx.yOffset - needed < BOTTOM_MARGIN) {
+		addNewPage(ctx);
+	}
+}
+
+function addPageFooter(ctx: PageContext): void {
+	ctx.page.drawText("LienSign.com", {
+		x: PAGE_WIDTH - 100,
+		y: 15,
+		size: 7,
+		font: ctx.font,
+		color: rgb(0.8, 0.8, 0.8),
+	});
+}
 
 export async function generateWaiverPDF(
 	stateCode: string,
@@ -23,16 +74,24 @@ export async function generateWaiverPDF(
 
 	const template = state.forms[formType];
 	const pdfDoc = await PDFDocument.create();
-	const page = pdfDoc.addPage([612, 792]);
-	const { width, height } = page.getSize();
+	const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
 
 	const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 	const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
+	const ctx: PageContext = {
+		pdfDoc,
+		page,
+		yOffset: PAGE_HEIGHT - MARGIN,
+		font,
+		boldFont,
+		watermark,
+	};
+
 	if (watermark) {
-		page.drawText(watermark, {
-			x: width / 2 - 150,
-			y: height / 2,
+		ctx.page.drawText(watermark, {
+			x: PAGE_WIDTH / 2 - 150,
+			y: PAGE_HEIGHT / 2,
 			size: 80,
 			font: boldFont,
 			color: rgb(0.9, 0.9, 0.9),
@@ -41,17 +100,13 @@ export async function generateWaiverPDF(
 		});
 	}
 
-	let yOffset = height - 50;
-	const margin = 50;
-	const contentWidth = width - margin * 2;
-
-	page.drawText(template.title, {
-		x: margin,
-		y: yOffset,
+	ctx.page.drawText(template.title, {
+		x: MARGIN,
+		y: ctx.yOffset,
 		size: 14,
 		font: boldFont,
 	});
-	yOffset -= 30;
+	ctx.yOffset -= 30;
 
 	if (template.notice) {
 		const style = template.noticeStyle || { fontSize: 10, isBold: true };
@@ -60,33 +115,33 @@ export async function generateWaiverPDF(
 			: template.notice;
 		const noticeFontSize = style.fontSize || 10;
 		const noticeFont = style.isBold ? boldFont : font;
+		const noticeLineHeight = noticeFontSize + 3;
 
 		const noticeLines = wrapText(
 			noticeText,
-			contentWidth,
+			CONTENT_WIDTH,
 			noticeFont,
 			noticeFontSize,
 		);
 		for (const line of noticeLines) {
-			page.drawText(line, {
-				x: margin,
-				y: yOffset,
+			ensureSpace(ctx, noticeLineHeight);
+			ctx.page.drawText(line, {
+				x: MARGIN,
+				y: ctx.yOffset,
 				size: noticeFontSize,
 				font: noticeFont,
 			});
-			yOffset -= noticeFontSize + 3;
+			ctx.yOffset -= noticeLineHeight;
 		}
-		yOffset -= 15;
+		ctx.yOffset -= 15;
 	}
 
 	let bodyText = template.body;
-	// Replace fields defined in metadata
 	for (const field of template.fields) {
 		const value = data[field] || "";
 		bodyText = bodyText.replaceAll(`{{${field}}}`, value);
 	}
 
-	// Safety pass: replace any other keys present in the data object
 	for (const [key, value] of Object.entries(data)) {
 		if (typeof value === "string") {
 			bodyText = bodyText.replaceAll(`{{${key}}}`, value);
@@ -94,28 +149,39 @@ export async function generateWaiverPDF(
 	}
 
 	const bodyFontSize = state.baseFontSize || 11;
-	const bodyLines = wrapText(bodyText, contentWidth, font, bodyFontSize);
+	const bodyLineHeight = bodyFontSize + 3;
+	const bodyLines = wrapText(bodyText, CONTENT_WIDTH, font, bodyFontSize);
+
 	for (const line of bodyLines) {
-		page.drawText(line, {
-			x: margin,
-			y: yOffset,
+		ensureSpace(ctx, bodyLineHeight);
+		ctx.page.drawText(line, {
+			x: MARGIN,
+			y: ctx.yOffset,
 			size: bodyFontSize,
 			font,
 		});
-		yOffset -= bodyFontSize + 3;
+		ctx.yOffset -= bodyLineHeight;
 	}
 
-	yOffset -= 50;
+	const signatureBlockHeight = signatureBase64 ? 130 : 80;
+	ensureSpace(ctx, signatureBlockHeight);
 
-	page.drawText("Dated:", { x: margin, y: yOffset, size: 12, font: boldFont });
-	page.drawText(new Date().toLocaleDateString(), {
-		x: margin + 60,
-		y: yOffset,
+	ctx.yOffset -= 50;
+
+	ctx.page.drawText("Dated:", {
+		x: MARGIN,
+		y: ctx.yOffset,
+		size: 12,
+		font: boldFont,
+	});
+	ctx.page.drawText(new Date().toLocaleDateString(), {
+		x: MARGIN + 60,
+		y: ctx.yOffset,
 		size: 11,
 		font,
 	});
 
-	yOffset -= 40;
+	ctx.yOffset -= 40;
 
 	if (signatureBase64) {
 		try {
@@ -130,9 +196,9 @@ export async function generateWaiverPDF(
 			}
 			const sigImage = await pdfDoc.embedPng(bytes);
 			const sigDims = sigImage.scale(0.5);
-			page.drawImage(sigImage, {
-				x: margin + 100,
-				y: yOffset - 10,
+			ctx.page.drawImage(sigImage, {
+				x: MARGIN + 100,
+				y: ctx.yOffset - 10,
 				width: sigDims.width,
 				height: sigDims.height,
 			});
@@ -141,27 +207,36 @@ export async function generateWaiverPDF(
 		}
 	}
 
-	page.drawText("By:", { x: margin, y: yOffset, size: 12, font: boldFont });
-	page.drawLine({
-		start: { x: margin + 60, y: yOffset - 2 },
-		end: { x: margin + 250, y: yOffset - 2 },
+	ctx.page.drawText("By:", {
+		x: MARGIN,
+		y: ctx.yOffset,
+		size: 12,
+		font: boldFont,
+	});
+	ctx.page.drawLine({
+		start: { x: MARGIN + 60, y: ctx.yOffset - 2 },
+		end: { x: MARGIN + 250, y: ctx.yOffset - 2 },
 		thickness: 1,
 	});
 
 	if (stateCode === "GA") {
-		page.drawText("(SEAL)", { x: margin + 260, y: yOffset, size: 10, font });
+		ctx.page.drawText("(SEAL)", {
+			x: MARGIN + 260,
+			y: ctx.yOffset,
+			size: 10,
+			font,
+		});
 	}
 
-	yOffset -= 20;
-	page.drawText("(Signature)", { x: margin + 140, y: yOffset, size: 8, font });
-
-	page.drawText("LienSign.com", {
-		x: width - 100,
-		y: 15,
-		size: 7,
+	ctx.yOffset -= 20;
+	ctx.page.drawText("(Signature)", {
+		x: MARGIN + 140,
+		y: ctx.yOffset,
+		size: 8,
 		font,
-		color: rgb(0.8, 0.8, 0.8),
 	});
+
+	addPageFooter(ctx);
 
 	return await pdfDoc.save();
 }
@@ -177,7 +252,7 @@ function wrapText(
 
 	for (const paragraph of paragraphs) {
 		if (paragraph === "") {
-			lines.push(""); // Preserve empty lines (paragraph breaks)
+			lines.push("");
 			continue;
 		}
 
