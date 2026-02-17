@@ -1,3 +1,12 @@
+export const WAIVER_TYPES = [
+	"conditional_progress",
+	"unconditional_progress",
+	"conditional_final",
+	"unconditional_final",
+] as const;
+
+export type WaiverType = (typeof WAIVER_TYPES)[number];
+
 export interface WaiverTemplate {
 	title: string;
 	notice?: string;
@@ -21,10 +30,5 @@ export interface StateTemplates {
 		maxHeight?: number;
 	};
 	sealRequired?: boolean;
-	forms: {
-		conditional_progress: WaiverTemplate;
-		unconditional_progress: WaiverTemplate;
-		conditional_final: WaiverTemplate;
-		unconditional_final: WaiverTemplate;
-	};
+	forms: Record<WaiverType, WaiverTemplate>;
 }

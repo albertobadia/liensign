@@ -13,7 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { generateWaiverPDF } from "../../lib/pdf";
-import { sanitizeFilename } from "../../lib/utils";
+import { createPdfBlob, downloadPdf, sanitizeFilename } from "../../lib/utils";
 import {
 	deleteWaiver,
 	getWaivers,
@@ -63,17 +63,9 @@ export function WaiverHistory() {
 				record.data.signature,
 			);
 
-			const blob = new Blob([pdfBytes as BlobPart], {
-				type: "application/pdf",
-			});
-			const url = URL.createObjectURL(blob);
-			const link = document.createElement("a");
-			link.href = url;
-			link.download = `LienWaiver-${sanitizeFilename(record.data.projectName)}.pdf`;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			URL.revokeObjectURL(url);
+			const blob = createPdfBlob(pdfBytes);
+			const fileName = `LienWaiver-${sanitizeFilename(record.data.projectName)}.pdf`;
+			downloadPdf(blob, fileName);
 			toast.success("Waiver downloaded successfully");
 		} catch (error) {
 			console.error("Download error:", error);

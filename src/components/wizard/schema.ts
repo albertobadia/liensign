@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SUPPORTED_STATES } from "../../lib/templates";
+import { WAIVER_TYPES } from "../../lib/templates/types";
 
 export const wizardSchema = z
 	.object({
@@ -15,12 +16,8 @@ export const wizardSchema = z
 		ownerName: z.string().min(2, "Owner name is required"),
 		customerName: z.string().min(2, "Customer name is required"),
 
-		waiverType: z.enum([
-			"conditional_progress",
-			"unconditional_progress",
-			"conditional_final",
-			"unconditional_final",
-		]),
+		// turbo
+		waiverType: z.enum(WAIVER_TYPES),
 		paymentAmount: z
 			.string()
 			.min(1, "Amount is required")

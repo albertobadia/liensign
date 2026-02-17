@@ -3,22 +3,23 @@ import { ClientRouter } from "astro:transitions";
 import { Toaster } from "sonner";
 import SeoHead from "../components/seo/SeoHead.astro";
 import { _defaultDescription, _stateListFooter } from "../lib/app-logic";
+import "sonner/dist/styles.css";
 import "../styles/global.css";
 
 interface Props {
-    title: string;
-    description?: string;
-    image?: string;
-    type?: "website" | "article";
-    jsonLd?: Record<string, unknown>;
+	title: string;
+	description?: string;
+	image?: string;
+	type?: "website" | "article";
+	jsonLd?: Record<string, unknown>;
 }
 
 const {
-    title,
-    description = _defaultDescription,
-    image,
-    type,
-    jsonLd,
+	title,
+	description = _defaultDescription,
+	image,
+	type,
+	jsonLd,
 } = Astro.props;
 ---
 

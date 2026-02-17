@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import { toast } from "sonner";
@@ -11,6 +12,7 @@ export function MyInfoForm() {
 		contractorPhone: "",
 		signature: "",
 	});
+	const [isSuccess, setIsSuccess] = useState(false);
 
 	useEffect(() => {
 		const saved = getProfile();
@@ -41,12 +43,19 @@ export function MyInfoForm() {
 			return;
 		}
 
-		const newProfile = { ...profile, signature };
-		saveProfile(newProfile);
-		setProfile(newProfile);
-		toast.success(
-			"Profile saved successfully! These details will pre-fill in the wizard.",
-		);
+		try {
+			const newProfile = { ...profile, signature };
+			saveProfile(newProfile);
+			setProfile(newProfile);
+			toast.success(
+				"Profile saved successfully! These details will pre-fill in the wizard.",
+			);
+			setIsSuccess(true);
+			setTimeout(() => setIsSuccess(false), 1000);
+		} catch (error) {
+			console.error("Failed to save profile:", error);
+			toast.error("Failed to save profile. Please try again.");
+		}
 	};
 
 	const clearSignature = () => {
@@ -184,9 +193,23 @@ export function MyInfoForm() {
 				<button
 					type="button"
 					onClick={handleSave}
-					className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-100 transition-all active:scale-[0.98]"
+					className={`w-full font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${
+						isSuccess
+							? "bg-green-500 text-white shadow-green-200"
+							: "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-100"
+					}`}
 				>
-					Save My Information
+					{isSuccess ? (
+						<>
+							<Check
+								size={20}
+								className="animate-in zoom-in spin-in-90 duration-300"
+							/>
+							Saved!
+						</>
+					) : (
+						"Save My Information"
+					)}
 				</button>
 			</div>
 		</div>

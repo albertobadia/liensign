@@ -4,8 +4,14 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { generateWaiverPDF } from "../../lib/pdf";
 import { SUPPORTED_STATES } from "../../lib/templates";
+import { WAIVER_TYPES, type WaiverType } from "../../lib/templates/types";
 import { getProfile } from "../../lib/userStore";
-import { sanitizeFilename } from "../../lib/utils";
+import {
+	createPdfBlob,
+	downloadPdf,
+	previewPdf,
+	sanitizeFilename,
+} from "../../lib/utils";
 import { getWaiver, saveWaiver, updateWaiver } from "../../lib/waiverHistory";
 import type { STEPS } from "./config";
 import { type WizardData, wizardSchema } from "./schema";
@@ -19,7 +25,7 @@ export function useWizard(steps: typeof STEPS) {
 	const methods = useForm<WizardData>({
 		resolver: zodResolver(wizardSchema),
 		defaultValues: {
-			waiverType: "conditional_progress",
+			waiverType: WAIVER_TYPES[0],
 			signatureOffsetX: 0,
 			signatureOffsetY: 0,
 			signatureScale: 1,
@@ -60,16 +66,8 @@ export function useWizard(steps: typeof STEPS) {
 				setValue("projectState", state as WizardData["projectState"]);
 			}
 
-			if (
-				type &&
-				[
-					"conditional_progress",
-					"unconditional_progress",
-					"conditional_final",
-					"unconditional_final",
-				].includes(type)
-			) {
-				setValue("waiverType", type as WizardData["waiverType"]);
+			if (type && WAIVER_TYPES.includes(type as WaiverType)) {
+				setValue("waiverType", type as WaiverType);
 			}
 		};
 
@@ -116,11 +114,8 @@ export function useWizard(steps: typeof STEPS) {
 				data.isDraft ? "DRAFT" : undefined,
 			);
 
-			const blob = new Blob([pdfBytes as BlobPart], {
-				type: "application/pdf",
-			});
-			const url = URL.createObjectURL(blob);
-			window.open(url, "_blank");
+			const blob = createPdfBlob(pdfBytes);
+			const url = previewPdf(blob);
 			toast.success("Document preview opened in a new tab.", { id: toastId });
 			setTimeout(() => URL.revokeObjectURL(url), 60000);
 		} catch (error: unknown) {
@@ -144,18 +139,9 @@ export function useWizard(steps: typeof STEPS) {
 				data.isDraft ? "DRAFT" : undefined,
 			);
 
-			const blob = new Blob([pdfBytes as BlobPart], {
-				type: "application/pdf",
-			});
-			const url = URL.createObjectURL(blob);
+			const blob = createPdfBlob(pdfBytes);
 			const fileName = `LienWaiver-${sanitizeFilename(data.projectName)}.pdf`;
-			const link = document.createElement("a");
-			link.href = url;
-			link.download = fileName;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			URL.revokeObjectURL(url);
+			downloadPdf(blob, fileName);
 
 			if (editingId) {
 				await updateWaiver(editingId, data);
@@ -198,7 +184,7 @@ export function useWizard(steps: typeof STEPS) {
 			);
 
 			const fileName = `LienWaiver-${sanitizeFilename(data.projectName)}.pdf`;
-			const file = new File([pdfBytes as BlobPart], fileName, {
+			const file = new File([pdfBytes as unknown as BlobPart], fileName, {
 				type: "application/pdf",
 			});
 
@@ -246,7 +232,7 @@ export function useWizard(steps: typeof STEPS) {
 
 	const handleCreateAnother = () => {
 		reset({
-			waiverType: "conditional_progress",
+			waiverType: WAIVER_TYPES[0],
 			signatureOffsetX: 0,
 			signatureOffsetY: 0,
 			signatureScale: 1,
