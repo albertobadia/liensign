@@ -137,15 +137,9 @@ export async function generateWaiverPDF(
 	}
 
 	let bodyText = template.body;
-	for (const field of template.fields) {
-		const value = String(data[field] || "");
-		bodyText = bodyText.replace(new RegExp(`{{${field}}}`, "g"), value);
-	}
-
 	for (const [key, value] of Object.entries(data)) {
-		if (typeof value === "string") {
-			bodyText = bodyText.replace(new RegExp(`{{${key}}}`, "g"), value);
-		}
+		const stringValue = String(value ?? "");
+		bodyText = bodyText.replace(new RegExp(`{{${key}}}`, "g"), stringValue);
 	}
 
 	const bodyFontSize = state.baseFontSize || 11;

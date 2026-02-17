@@ -1,304 +1,36 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-
 import { AnimatePresence, motion } from "framer-motion";
 import {
-	Banknote,
-	Building,
 	Check,
 	ChevronLeft,
 	ChevronRight,
 	CircleCheckBig,
 	Download,
 	Eye,
-	FileText,
 	History,
 	Loader2,
 	Mail,
 	Plus,
 	User,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { generateWaiverPDF } from "../../lib/pdf";
-import { SUPPORTED_STATES } from "../../lib/templates";
+import { FormProvider } from "react-hook-form";
 import { getProfile } from "../../lib/userStore";
-import { cn, sanitizeFilename } from "../../lib/utils";
-import { getWaiver, saveWaiver, updateWaiver } from "../../lib/waiverHistory";
-import { type WizardData, wizardSchema } from "./schema";
-import { StepContractor } from "./steps/StepContractor";
-import { StepFinancials } from "./steps/StepFinancials";
-import { StepProject } from "./steps/StepProject";
-import { StepSignature } from "./steps/StepSignature";
-
-const STEPS = [
-	{
-		id: "contractor",
-		title: "Contractor",
-		icon: Building,
-		component: StepContractor,
-	},
-	{ id: "project", title: "Project", icon: User, component: StepProject },
-	{
-		id: "financials",
-		title: "Financials",
-		icon: Banknote,
-		component: StepFinancials,
-	},
-	{
-		id: "signature",
-		title: "Review",
-		icon: FileText,
-		component: StepSignature,
-	},
-];
+import { cn } from "../../lib/utils";
+import { STEPS } from "./config";
+import { useWizard } from "./useWizard";
 
 export function Wizard() {
-	const [currentStep, setCurrentStep] = useState(0);
-	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [isComplete, setIsComplete] = useState(false);
-	const [editingId, setEditingId] = useState<string | null>(null);
-
-	const methods = useForm<WizardData>({
-		// @ts-expect-error: Zod 4 compatibility with hookform resolvers v3/v5 metadata check
-		resolver: zodResolver(wizardSchema),
-		defaultValues: {
-			waiverType: "conditional_progress",
-		},
-		mode: "onChange",
-	});
-
-	const { trigger, handleSubmit, setValue } = methods;
-
-	useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		const editId = params.get("edit");
-		const state = params.get("state")?.toUpperCase();
-		const type = params.get("type");
-
-		if (editId) {
-			const record = getWaiver(editId);
-			if (record) {
-				setEditingId(editId);
-				for (const [key, value] of Object.entries(record.data)) {
-					setValue(key as keyof WizardData, value);
-				}
-				return;
-			}
-		}
-
-		const profile = getProfile();
-		if (profile) {
-			setValue("contractorName", profile.contractorName);
-			setValue("contractorAddress", profile.contractorAddress);
-			setValue("contractorPhone", profile.contractorPhone);
-			setValue("signature", profile.signature);
-		}
-
-		if (state && SUPPORTED_STATES.includes(state)) {
-			setValue("projectState", state as WizardData["projectState"]);
-		}
-
-		if (
-			type &&
-			[
-				"conditional_progress",
-				"unconditional_progress",
-				"conditional_final",
-				"unconditional_final",
-			].includes(type)
-		) {
-			setValue("waiverType", type as WizardData["waiverType"]);
-		}
-	}, [setValue]);
-
-	const handleNext = async () => {
-		const fields = getFieldsForStep(currentStep);
-		const isStepValid = await trigger(fields as Array<keyof WizardData>);
-
-		if (isStepValid && currentStep < STEPS.length - 1) {
-			setCurrentStep((prev) => prev + 1);
-		}
-	};
-
-	const getFieldsForStep = (step: number): string[] => {
-		const fields: Record<number, string[]> = {
-			0: ["contractorName", "contractorAddress", "contractorPhone"],
-			1: ["projectName", "projectAddress", "projectState", "ownerName"],
-			2: ["waiverType", "paymentAmount", "throughDate"],
-			3: ["signature"],
-		};
-		return fields[step] || [];
-	};
-
-	const handleBack = () => {
-		if (currentStep > 0) {
-			setCurrentStep((prev) => prev - 1);
-		}
-	};
-
-	const onPreview = async () => {
-		const data = methods.getValues();
-		const isStepValid = await trigger();
-
-		if (!isStepValid) {
-			const errors = methods.formState.errors;
-			console.error("Preview validation failed:", errors);
-			toast.error("Please fix errors before previewing.");
-			return;
-		}
-
-		if (!data.signature) {
-			console.error("Preview failed: No signature");
-			toast.error("Please sign the document before previewing.");
-			return;
-		}
-
-		setIsSubmitting(true);
-		const toastId = toast.loading("Generating preview...");
-		try {
-			const pdfBytes = await generateWaiverPDF(
-				data.projectState,
-				data.waiverType,
-				data,
-				data.signature,
-				data.isDraft ? "DRAFT" : undefined,
-			);
-
-			const blob = new Blob([pdfBytes as BlobPart], {
-				type: "application/pdf",
-			});
-			const url = URL.createObjectURL(blob);
-			window.open(url, "_blank");
-			toast.success("Document preview opened in a new tab.", { id: toastId });
-		} catch (error: unknown) {
-			console.error("Preview error:", error);
-			toast.error("Failed to generate preview.", { id: toastId });
-		} finally {
-			setIsSubmitting(false);
-		}
-	};
-
-	const onSubmit = async (data: WizardData) => {
-		setIsSubmitting(true);
-		const toastId = toast.loading("Generating and downloading waiver...");
-
-		try {
-			const pdfBytes = await generateWaiverPDF(
-				data.projectState,
-				data.waiverType,
-				data,
-				data.signature,
-				data.isDraft ? "DRAFT" : undefined,
-			);
-
-			const blob = new Blob([pdfBytes as BlobPart], {
-				type: "application/pdf",
-			});
-			const url = URL.createObjectURL(blob);
-			const fileName = `LienWaiver-${sanitizeFilename(data.projectName)}.pdf`;
-			const link = document.createElement("a");
-			link.href = url;
-			link.download = fileName;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			URL.revokeObjectURL(url);
-			if (editingId) {
-				updateWaiver(editingId, data);
-			} else {
-				saveWaiver(data);
-			}
-			setIsComplete(true);
-			toast.success("Waiver generated successfully!", { id: toastId });
-		} catch (error: unknown) {
-			console.error("Generation error:", error);
-			const errorMessage =
-				error instanceof Error ? error.message : "Failed to generate document";
-			toast.error(`Error: ${errorMessage}`, { id: toastId });
-		} finally {
-			setIsSubmitting(false);
-		}
-	};
-
-	const onEmail = async () => {
-		const data = methods.getValues();
-		const isStepValid = await trigger();
-		if (!isStepValid) {
-			toast.error("Please fix errors before sending.");
-			return;
-		}
-
-		if (!data.signature) {
-			toast.error("Please sign the document before sending.");
-			return;
-		}
-
-		setIsSubmitting(true);
-		const toastId = toast.loading("Preparing document for sharing...");
-
-		try {
-			const pdfBytes = await generateWaiverPDF(
-				data.projectState,
-				data.waiverType,
-				data,
-				data.signature,
-				data.isDraft ? "DRAFT" : undefined,
-			);
-
-			const fileName = `LienWaiver-${sanitizeFilename(data.projectName)}.pdf`;
-			const file = new File([pdfBytes as BlobPart], fileName, {
-				type: "application/pdf",
-			});
-
-			const profile = getProfile();
-			const defaultTemplate = `Hi,\n\nPlease find attached the lien waiver for ${data.projectName}.\n\nBest regards,\n${data.contractorName}`;
-			const template = profile?.emailTemplate || defaultTemplate;
-
-			if (
-				navigator.share &&
-				navigator.canShare &&
-				navigator.canShare({ files: [file] })
-			) {
-				await navigator.share({
-					files: [file],
-					title: `Lien Waiver - ${data.projectName}`,
-					text: template,
-				});
-				toast.success("Share menu opened!", { id: toastId });
-			} else {
-				const subject = encodeURIComponent(`Lien Waiver - ${data.projectName}`);
-				const body = encodeURIComponent(template);
-				window.location.href = `mailto:?subject=${subject}&body=${body}`;
-				toast.warning(
-					"Your browser doesn't support direct attachments. Opening email client with message only.",
-					{ id: toastId, duration: 6000 },
-				);
-			}
-
-			// Save to history
-			if (editingId) {
-				updateWaiver(editingId, data);
-			} else {
-				saveWaiver(data);
-			}
-		} catch (error: unknown) {
-			console.error("Sharing error:", error);
-			toast.error("Failed to prepare document for sharing.", { id: toastId });
-		} finally {
-			setIsSubmitting(false);
-		}
-	};
-	const onInvalid = () => {
-		const errors = methods.formState.errors;
-		console.error("Validation failed:", errors);
-		toast.error("Please fix errors in previous steps before continuing.");
-	};
-	const handleCreateAnother = () => {
-		methods.reset({ waiverType: "conditional_progress" });
-		setCurrentStep(0);
-		setIsComplete(false);
-	};
+	const {
+		currentStep,
+		isSubmitting,
+		isComplete,
+		methods,
+		handleNext,
+		handleBack,
+		onPreview,
+		onSubmit,
+		onEmail,
+		handleCreateAnother,
+	} = useWizard(STEPS);
 
 	const CurrentStepComponent = STEPS[currentStep].component;
 
@@ -385,10 +117,7 @@ export function Wizard() {
 					</div>
 				</div>
 
-				<form
-					onSubmit={handleSubmit(onSubmit)}
-					className="p-4 sm:p-8 min-h-[450px]"
-				>
+				<form onSubmit={onSubmit} className="p-4 sm:p-8 min-h-[450px]">
 					{!getProfile() && currentStep === 0 && (
 						<div className="mb-8 p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
 							<div className="mt-1 p-2 bg-blue-600 rounded-lg text-white">
@@ -465,8 +194,7 @@ export function Wizard() {
 								Email
 							</button>
 							<button
-								type="button"
-								onClick={handleSubmit(onSubmit, onInvalid)}
+								type="submit"
 								disabled={isSubmitting}
 								className={cn(
 									"flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95",
