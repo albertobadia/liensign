@@ -65,7 +65,7 @@ export async function generateWaiverPDF(
 		| "unconditional_progress"
 		| "conditional_final"
 		| "unconditional_final",
-	data: Record<string, string>,
+	data: Record<string, string | number | boolean | undefined>,
 	signatureBase64?: string,
 	watermark?: string,
 ) {
@@ -138,13 +138,13 @@ export async function generateWaiverPDF(
 
 	let bodyText = template.body;
 	for (const field of template.fields) {
-		const value = data[field] || "";
-		bodyText = bodyText.replaceAll(`{{${field}}}`, value);
+		const value = String(data[field] || "");
+		bodyText = bodyText.replace(new RegExp(`{{${field}}}`, "g"), value);
 	}
 
 	for (const [key, value] of Object.entries(data)) {
 		if (typeof value === "string") {
-			bodyText = bodyText.replaceAll(`{{${key}}}`, value);
+			bodyText = bodyText.replace(new RegExp(`{{${key}}}`, "g"), value);
 		}
 	}
 

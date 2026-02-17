@@ -13,6 +13,7 @@ import {
 	FileText,
 	History,
 	Loader2,
+	Mail,
 	Plus,
 	User,
 } from "lucide-react";
@@ -161,6 +162,7 @@ export function Wizard() {
 				data.waiverType,
 				data,
 				data.signature,
+				data.isDraft ? "DRAFT" : undefined,
 			);
 
 			const blob = new Blob([pdfBytes as BlobPart], {
@@ -187,6 +189,7 @@ export function Wizard() {
 				data.waiverType,
 				data,
 				data.signature,
+				data.isDraft ? "DRAFT" : undefined,
 			);
 
 			const blob = new Blob([pdfBytes as BlobPart], {
@@ -212,6 +215,77 @@ export function Wizard() {
 			const errorMessage =
 				error instanceof Error ? error.message : "Failed to generate document";
 			toast.error(`Error: ${errorMessage}`, { id: toastId });
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
+	const onEmail = async () => {
+		const data = methods.getValues();
+		const isStepValid = await trigger();
+		if (!isStepValid) {
+			toast.error("Please fix errors before sending.");
+			return;
+		}
+
+		if (!data.signature) {
+			toast.error("Please sign the document before sending.");
+			return;
+		}
+
+		setIsSubmitting(true);
+		const toastId = toast.loading("Preparing document for sharing...");
+
+		try {
+			const pdfBytes = await generateWaiverPDF(
+				data.projectState,
+				data.waiverType,
+				data,
+				data.signature,
+				data.isDraft ? "DRAFT" : undefined,
+			);
+
+			const fileName = `LienWaiver-${data.projectName.replace(/\s+/g, "-")}.pdf`;
+			const file = new File([pdfBytes as BlobPart], fileName, {
+				type: "application/pdf",
+			});
+
+			const profile = getProfile();
+			const defaultTemplate = `Hi,\n\nPlease find attached the lien waiver for ${data.projectName}.\n\nBest regards,\n${data.contractorName}`;
+			const template = profile?.emailTemplate || defaultTemplate;
+
+			// Check if Web Share API is available and can share files
+			if (
+				navigator.share &&
+				navigator.canShare &&
+				navigator.canShare({ files: [file] })
+			) {
+				await navigator.share({
+					files: [file],
+					title: `Lien Waiver - ${data.projectName}`,
+					text: template,
+				});
+				toast.success("Share menu opened!", { id: toastId });
+			} else {
+				// Fallback to mailto (no attachment possible)
+				const subject = encodeURIComponent(`Lien Waiver - ${data.projectName}`);
+				const body = encodeURIComponent(template);
+				window.location.href = `mailto:?subject=${subject}&body=${body}`;
+				toast.warning(
+					"Your browser doesn't support direct attachments. Opening email client with message only.",
+					{ id: toastId, duration: 6000 },
+				);
+			}
+
+			// Save to history
+			if (editingId) {
+				updateWaiver(editingId, data);
+			} else {
+				saveWaiver(data);
+			}
+		} catch (error: unknown) {
+			console.error("Sharing error:", error);
+			toast.error("Failed to prepare document for sharing.", { id: toastId });
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -380,38 +454,57 @@ export function Wizard() {
 						</button>
 					</div>
 
-					<button
-						type="button"
-						onClick={
-							currentStep === STEPS.length - 1
-								? handleSubmit(onSubmit, onInvalid)
-								: handleNext
-						}
-						disabled={isSubmitting}
-						className={cn(
-							"flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95",
-							isSubmitting
-								? "bg-slate-400 cursor-not-allowed text-white"
-								: "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200",
-						)}
-					>
-						{isSubmitting ? (
-							<>
-								<Loader2 className="animate-spin" size={18} />
-								Generating...
-							</>
-						) : currentStep === STEPS.length - 1 ? (
-							<>
-								<Download size={18} />
-								Download
-							</>
-						) : (
-							<>
-								Continue
-								<ChevronRight size={18} />
-							</>
-						)}
-					</button>
+					{currentStep === STEPS.length - 1 ? (
+						<div className="flex items-center gap-3">
+							<button
+								type="button"
+								onClick={onEmail}
+								disabled={isSubmitting}
+								className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-lg transition-all active:scale-95 disabled:opacity-50"
+							>
+								<Mail size={18} />
+								Email
+							</button>
+							<button
+								type="button"
+								onClick={handleSubmit(onSubmit, onInvalid)}
+								disabled={isSubmitting}
+								className={cn(
+									"flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95",
+									isSubmitting
+										? "bg-slate-400 cursor-not-allowed text-white"
+										: "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200",
+								)}
+							>
+								{isSubmitting ? (
+									<>
+										<Loader2 className="animate-spin" size={18} />
+										Generating...
+									</>
+								) : (
+									<>
+										<Download size={18} />
+										Download
+									</>
+								)}
+							</button>
+						</div>
+					) : (
+						<button
+							type="button"
+							onClick={handleNext}
+							disabled={isSubmitting}
+							className={cn(
+								"flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95",
+								isSubmitting
+									? "bg-slate-400 cursor-not-allowed text-white"
+									: "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200",
+							)}
+						>
+							Continue
+							<ChevronRight size={18} />
+						</button>
+					)}
 				</div>
 			</div>
 		</FormProvider>

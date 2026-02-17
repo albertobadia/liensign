@@ -128,6 +128,29 @@ export function MyInfoForm() {
 								className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
 							/>
 						</div>
+
+						<div>
+							<label
+								htmlFor="emailTemplate"
+								className="block text-sm font-semibold text-slate-700 mb-1"
+							>
+								Email Sharing Template
+							</label>
+							<textarea
+								id="emailTemplate"
+								value={profile.emailTemplate || ""}
+								onChange={(e) =>
+									setProfile((p) => ({ ...p, emailTemplate: e.target.value }))
+								}
+								placeholder="Enter the message you want to send with your waivers..."
+								rows={4}
+								className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none text-sm"
+							/>
+							<p className="text-[10px] text-slate-400 mt-2">
+								This message will be used as the body of the email when you use
+								the "Email" button in the wizard.
+							</p>
+						</div>
 					</div>
 
 					<div>

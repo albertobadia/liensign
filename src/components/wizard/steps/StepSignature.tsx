@@ -5,7 +5,13 @@ import SignatureCanvas from "react-signature-canvas";
 import type { WizardData } from "../schema";
 
 export function StepSignature() {
-	const { watch, setValue, getValues } = useFormContext<WizardData>();
+	const {
+		register,
+		watch,
+		setValue,
+		getValues,
+		formState: { errors },
+	} = useFormContext<WizardData>();
 	const sigCanvas = useRef<SignatureCanvas>(null);
 
 	const formData = watch();
@@ -108,7 +114,7 @@ export function StepSignature() {
 					<button
 						type="button"
 						onClick={clearSignature}
-						className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1 font-bold"
+						className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors bg-white px-3 py-1.5 rounded-lg border border-slate-100 shadow-sm"
 					>
 						<Trash2 size={14} />
 						Clear
@@ -128,6 +134,36 @@ export function StepSignature() {
 					<div className="absolute bottom-2 right-4 pointer-events-none text-[10px] font-bold text-slate-300 uppercase tracking-widest group-hover:hidden transition-opacity">
 						Sign Here
 					</div>
+				</div>
+				{errors.signature && (
+					<p className="text-red-500 text-xs mt-2">
+						{errors.signature.message}
+					</p>
+				)}
+			</div>
+
+			<div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+				<div className="flex items-center justify-between gap-4">
+					<div className="space-y-1">
+						<h4 className="font-bold text-slate-900 flex items-center gap-2">
+							Draft Mode
+							<span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full uppercase tracking-wider">
+								Beta
+							</span>
+						</h4>
+						<p className="text-xs text-slate-500 leading-relaxed">
+							Adds a "DRAFT" watermark to the document. Useful for preliminary
+							reviews.
+						</p>
+					</div>
+					<label className="relative inline-flex items-center cursor-pointer">
+						<input
+							type="checkbox"
+							{...register("isDraft")}
+							className="sr-only peer"
+						/>
+						<div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
+					</label>
 				</div>
 			</div>
 

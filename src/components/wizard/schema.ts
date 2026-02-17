@@ -32,6 +32,7 @@ export const wizardSchema = z
 		jobNumber: z.string().optional(),
 		maker: z.string().optional(),
 		jobDescription: z.string().optional(),
+		isDraft: z.boolean().default(false),
 	})
 	.superRefine((data, ctx) => {
 		if (data.projectState === "TX" && !data.jobNumber) {

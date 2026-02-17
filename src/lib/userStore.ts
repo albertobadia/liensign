@@ -5,6 +5,7 @@ const userProfileSchema = z.object({
 	contractorAddress: z.string(),
 	contractorPhone: z.string(),
 	signature: z.string(),
+	emailTemplate: z.string().optional(),
 });
 
 export type UserProfile = z.infer<typeof userProfileSchema>;

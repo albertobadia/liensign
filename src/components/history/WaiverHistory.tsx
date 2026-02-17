@@ -29,11 +29,17 @@ export function WaiverHistory() {
 	}, []);
 
 	const handleDelete = (id: string, name: string) => {
-		if (confirm(`Are you sure you want to delete the waiver for "${name}"?`)) {
-			deleteWaiver(id);
-			setWaivers(getWaivers());
-			toast.success("Waiver deleted from history");
-		}
+		toast(`Delete waiver for "${name}"?`, {
+			description: "This action cannot be undone.",
+			action: {
+				label: "Delete",
+				onClick: () => {
+					deleteWaiver(id);
+					setWaivers(getWaivers());
+					toast.success("Waiver deleted from history");
+				},
+			},
+		});
 	};
 
 	const handleDownload = async (record: WaiverRecord) => {
