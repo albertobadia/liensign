@@ -1,4 +1,6 @@
-# LienSign: Professional Lien Waivers (Offline)
+<p align="center">
+  <img src="public/logo-header.svg" width="400" alt="LienSign Logo">
+</p>
 
 LienSign is a local-first browser tool designed for subcontractors to generate, sign, and download legally compliant lien waivers in seconds.
 

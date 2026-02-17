@@ -6,19 +6,19 @@ import { _defaultDescription, _stateListFooter } from "../lib/app-logic";
 import "../styles/global.css";
 
 interface Props {
-	title: string;
-	description?: string;
-	image?: string;
-	type?: "website" | "article";
-	jsonLd?: Record<string, unknown>;
+    title: string;
+    description?: string;
+    image?: string;
+    type?: "website" | "article";
+    jsonLd?: Record<string, unknown>;
 }
 
 const {
-	title,
-	description = _defaultDescription,
-	image,
-	type,
-	jsonLd,
+    title,
+    description = _defaultDescription,
+    image,
+    type,
+    jsonLd,
 } = Astro.props;
 ---
 
@@ -167,8 +167,10 @@ const {
                 <div
                     class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center border-b border-slate-200 pb-12 mb-12"
                 >
-                    <div class="text-left">
-                        <div class="flex items-center gap-2 mb-4">
+                    <div class="text-center md:text-left">
+                        <div
+                            class="flex items-center justify-center md:justify-start gap-2 mb-4"
+                        >
                             <div
                                 class="h-6 w-6 rounded bg-blue-600 flex items-center justify-center text-white font-bold text-sm"
                             >
@@ -181,7 +183,7 @@ const {
                             >
                         </div>
                         <p
-                            class="text-xs text-slate-500 max-w-md leading-relaxed"
+                            class="text-xs text-slate-500 max-w-md mx-auto md:mx-0 leading-relaxed"
                         >
                             LienSign is a platform for generating construction
                             documents.
@@ -193,7 +195,9 @@ const {
                             an attorney-client relationship.
                         </p>
                     </div>
-                    <div class="flex flex-wrap gap-x-8 gap-y-4 md:justify-end">
+                    <div
+                        class="flex flex-wrap justify-center md:justify-end gap-x-8 gap-y-4"
+                    >
                         <a
                             href="/history"
                             class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors"
@@ -214,7 +218,7 @@ const {
                 <div
                     class="flex flex-col md:flex-row justify-between items-center gap-4 border-t border-slate-100 pt-8"
                 >
-                    <p class="text-sm text-slate-500">
+                    <p class="text-sm text-slate-500 text-center md:text-left">
                         © 2026 LienSign. Professional templates for {
                             _stateListFooter
                         }.
