@@ -250,7 +250,7 @@ export async function generateWaiverPDF(
 		thickness: 1,
 	});
 
-	if (stateCode === "GA") {
+	if (state.sealRequired) {
 		ctx.page.drawText("(SEAL)", {
 			x: MARGIN + 260,
 			y: ctx.yOffset,

@@ -21,6 +21,7 @@ export interface StateTemplates {
 		maxHeight?: number;
 		descenderRatio?: number;
 	};
+	sealRequired?: boolean;
 	forms: {
 		conditional_progress: WaiverTemplate;
 		unconditional_progress: WaiverTemplate;

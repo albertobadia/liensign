@@ -7,6 +7,7 @@ export const GA: StateTemplates = {
 	sourceUrl:
 		"https://law.justia.com/codes/georgia/2022/title-44/chapter-14/article-8/part-2/section-44-14-366/",
 	baseFontSize: 12,
+	sealRequired: true,
 	forms: {
 		conditional_progress: {
 			title:
