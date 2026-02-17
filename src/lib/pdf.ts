@@ -1,11 +1,4 @@
-import {
-	degrees,
-	PDFDocument,
-	type PDFFont,
-	type PDFPage,
-	rgb,
-	StandardFonts,
-} from "pdf-lib";
+import type { PDFDocument, PDFFont, PDFPage } from "pdf-lib";
 import { WAIVER_TEMPLATES } from "./templates";
 import type { StateTemplates, WaiverTemplate } from "./templates/types";
 
@@ -22,6 +15,8 @@ interface PageContext {
 	font: PDFFont;
 	boldFont: PDFFont;
 	watermark?: string;
+	// biome-ignore lint/suspicious/noExplicitAny: pdfLib is dynamically imported
+	pdfLib: any;
 }
 
 function addNewPage(ctx: PageContext): void {
@@ -43,6 +38,7 @@ function ensureSpace(ctx: PageContext, needed: number): void {
 
 function drawWatermark(ctx: PageContext): void {
 	if (!ctx.watermark) return;
+	const { degrees, rgb } = ctx.pdfLib;
 	const fontSize = 80;
 	const textWidth = ctx.boldFont.widthOfTextAtSize(ctx.watermark, fontSize);
 	ctx.page.drawText(ctx.watermark, {
@@ -62,7 +58,7 @@ function addPageFooter(ctx: PageContext): void {
 		y: 15,
 		size: 7,
 		font: ctx.font,
-		color: rgb(0.8, 0.8, 0.8),
+		color: ctx.pdfLib.rgb(0.8, 0.8, 0.8),
 	});
 }
 
@@ -208,7 +204,7 @@ async function drawSignatureBlock(
 				y: sigY,
 				width: scaledWidth,
 				height: scaledHeight,
-				rotate: degrees(-rotation),
+				rotate: ctx.pdfLib.degrees(-rotation),
 			});
 		} catch (e) {
 			console.error("Signature embedding failed:", e);
@@ -291,6 +287,10 @@ export async function generateWaiverPDF(
 	signatureBase64?: string,
 	watermark?: string,
 ) {
+	// Dynamically import pdf-lib to reduce initial bundle size
+	const pdfLib = await import("pdf-lib");
+	const { PDFDocument, StandardFonts } = pdfLib;
+
 	const state = WAIVER_TEMPLATES[stateCode];
 	if (!state) throw new Error(`State ${stateCode} not supported`);
 
@@ -308,6 +308,7 @@ export async function generateWaiverPDF(
 		font,
 		boldFont,
 		watermark,
+		pdfLib,
 	};
 
 	if (watermark) {
