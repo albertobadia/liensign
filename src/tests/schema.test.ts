@@ -16,6 +16,10 @@ describe("Wizard Schema Validation", () => {
 		throughDate: "2026-02-15",
 		recipientEmail: "client@example.com",
 		signature: "data:image/png;base64,fake_signature_data",
+		// New mandatory fields for TX/Conditional
+		jobNumber: "2024-001",
+		jobDescription: "General Contracting",
+		maker: "Property Owner LLC",
 	};
 
 	it("should validate a complete and correct data set", () => {

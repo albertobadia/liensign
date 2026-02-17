@@ -82,7 +82,7 @@ export async function generateWaiverPDF(
 	let bodyText = template.body;
 	// Replace fields defined in metadata
 	for (const field of template.fields) {
-		const value = data[field] || `[${field.toUpperCase()}]`;
+		const value = data[field] || "";
 		bodyText = bodyText.replaceAll(`{{${field}}}`, value);
 	}
 

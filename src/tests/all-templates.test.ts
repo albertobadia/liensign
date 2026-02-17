@@ -62,4 +62,28 @@ describe("Exhaustive Template Field Replacement Test", () => {
 			).toBeNull();
 		});
 	});
+
+	describe("Sparse Data Success Path", () => {
+		it("should result in clean text even if some fields are missing (optional fields)", () => {
+			const state = WAIVER_TEMPLATES.TX;
+			const form = state.forms.conditional_progress;
+			let bodyText = form.body;
+
+			// MOCK_DATA but without jobNumber
+			const sparseData: Record<string, string> = { ...MOCK_DATA };
+			delete sparseData.jobNumber;
+
+			// Perform replacement (Simulating pdf.ts logic)
+			for (const field of form.fields) {
+				const value = sparseData[field] || "";
+				bodyText = bodyText.replaceAll(`{{${field}}}`, value);
+			}
+
+			// ASSERTION: No [JOBNUMBER] or {{jobNumber}} should remain
+			expect(bodyText).not.toContain("[JOBNUMBER]");
+			expect(bodyText).not.toContain("{{jobNumber}}");
+			// It should just be empty after "Job No.: "
+			expect(bodyText).toContain("Job No.: \n");
+		});
+	});
 });
