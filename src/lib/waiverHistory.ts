@@ -26,7 +26,7 @@ async function ensureMigration() {
 				for (const record of parsed.data) {
 					await putOne(STORE_NAME, record);
 				}
-				// We keep the old data for safety for now, but mark migration as done
+				// Mark migration as done but keep legacy data as backup
 				localStorage.setItem(MIGRATION_KEY, "true");
 			}
 		} catch (e) {

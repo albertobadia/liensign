@@ -28,15 +28,15 @@ export const wizardSchema = z
 		throughDate: z.string().min(1, "Date is required"),
 
 		signature: z.string().min(1, "Signature is required"),
-		signatureOffsetX: z.number().default(0),
-		signatureOffsetY: z.number().default(0),
-		signatureScale: z.number().default(1),
-		signatureRotation: z.number().default(0),
+		signatureOffsetX: z.number(),
+		signatureOffsetY: z.number(),
+		signatureScale: z.number(),
+		signatureRotation: z.number(),
 
 		jobNumber: z.string().optional(),
 		maker: z.string().optional(),
 		jobDescription: z.string().optional(),
-		isDraft: z.boolean().default(false),
+		isDraft: z.boolean(),
 	})
 	.superRefine((data, ctx) => {
 		if (data.projectState === "TX" && !data.jobNumber) {

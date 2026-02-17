@@ -141,7 +141,6 @@ async function drawSignatureBlock(
 
 	ctx.yOffset -= 50;
 
-	// Date Line
 	ctx.page.drawText("Dated:", {
 		x: MARGIN,
 		y: ctx.yOffset,
@@ -164,7 +163,6 @@ async function drawSignatureBlock(
 
 	ctx.yOffset -= 40;
 
-	// Signature Image
 	if (signatureBase64) {
 		try {
 			const cleanBase64 = signatureBase64.replace(
@@ -215,7 +213,6 @@ async function drawSignatureBlock(
 		}
 	}
 
-	// Signature Line
 	ctx.page.drawText("By:", {
 		x: MARGIN,
 		y: ctx.yOffset,
@@ -228,7 +225,6 @@ async function drawSignatureBlock(
 		thickness: 1,
 	});
 
-	// Optional Seal
 	if (state.sealRequired) {
 		ctx.page.drawText("(SEAL)", {
 			x: MARGIN + 260,

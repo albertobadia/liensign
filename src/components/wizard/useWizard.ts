@@ -17,7 +17,6 @@ export function useWizard(steps: typeof STEPS) {
 	const [editingId, setEditingId] = useState<string | null>(null);
 
 	const methods = useForm<WizardData>({
-		// @ts-expect-error: Zod 4 compatibility with hookform resolvers v3/v5 metadata check
 		resolver: zodResolver(wizardSchema),
 		defaultValues: {
 			waiverType: "conditional_progress",
@@ -131,7 +130,7 @@ export function useWizard(steps: typeof STEPS) {
 		}
 	};
 
-	const onSubmit = async (data: WizardData) => {
+	const handleFormSubmit = async (data: WizardData) => {
 		setIsSubmitting(true);
 		const toastId = toast.loading("Generating and downloading waiver...");
 
@@ -258,8 +257,7 @@ export function useWizard(steps: typeof STEPS) {
 		handleNext,
 		handleBack,
 		onPreview,
-		// @ts-expect-error: Hook form type inference mismatch after schema update
-		onSubmit: handleSubmit(onSubmit, onInvalid),
+		onSubmit: handleSubmit(handleFormSubmit, onInvalid),
 		onEmail,
 		handleCreateAnother,
 	};

@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { Maximize, Move, RotateCw, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
-// @ts-expect-error: External library type mismatch with esModuleInterop
 import SignatureCanvas from "react-signature-canvas";
 import {
 	getSignaturePreset,
@@ -33,7 +32,6 @@ export function StepSignature() {
 		waiverType,
 	} = formData;
 
-	// Effect 1: Load Signature (Run once on mount/ref ready)
 	useEffect(() => {
 		if (sigCanvas.current && !isCanvasLoaded.current) {
 			const savedSig = getValues("signature");
@@ -44,11 +42,7 @@ export function StepSignature() {
 		}
 	}, [getValues]);
 
-	// Effect 2: Load Presets
 	useEffect(() => {
-		// Only load preset if we haven't manually adjusted it yet?
-		// For now, let's keep it simple and load on state change,
-		// but maybe we should check if values are already set?
 		if (
 			signatureOffsetX !== 0 ||
 			signatureOffsetY !== 0 ||
