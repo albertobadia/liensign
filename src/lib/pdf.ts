@@ -174,12 +174,19 @@ export async function generateWaiverPDF(
 		size: 12,
 		font: boldFont,
 	});
-	ctx.page.drawText(new Date().toLocaleDateString(), {
-		x: MARGIN + 60,
-		y: ctx.yOffset,
-		size: 11,
-		font,
-	});
+	ctx.page.drawText(
+		new Date().toLocaleDateString("en-US", {
+			year: "numeric",
+			month: "long",
+			day: "numeric",
+		}),
+		{
+			x: MARGIN + 60,
+			y: ctx.yOffset,
+			size: 11,
+			font,
+		},
+	);
 
 	ctx.yOffset -= 40;
 
