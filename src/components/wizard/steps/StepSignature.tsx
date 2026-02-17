@@ -38,7 +38,6 @@ export function StepSignature() {
 			sigCanvas.current.fromDataURL(currentSignature);
 		}
 
-		// Load preset if available
 		const preset = getSignaturePreset(projectState, waiverType);
 		if (preset) {
 			setValue("signatureOffsetX", preset.offsetX);
@@ -211,7 +210,6 @@ export function StepSignature() {
 				) : (
 					<div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
 						<div className="bg-slate-100 rounded-2xl p-8 flex flex-col items-center justify-center relative overflow-hidden min-h-[260px] border-2 border-dashed border-slate-300">
-							{/* PDF Mockup Section - EXACT PDF DIMENSIONS (1pt = 1px) */}
 							<div className="bg-white p-12 rounded-lg shadow-xl border border-slate-200 w-full max-w-[400px]">
 								<div className="flex items-baseline gap-2 relative">
 									<span className="text-sm font-bold text-slate-800 font-serif whitespace-nowrap">
@@ -221,10 +219,8 @@ export function StepSignature() {
 										className="relative"
 										style={{ width: "190px", height: "60px" }}
 									>
-										{/* The Line - Mirroring PDF baseline */}
 										<div className="absolute bottom-0 h-[2px] bg-slate-900 w-full" />
 
-										{/* The Signature - 1:1 Placement */}
 										<motion.div
 											drag
 											dragMomentum={false}
@@ -258,8 +254,8 @@ export function StepSignature() {
 							</div>
 
 							<div className="absolute top-4 right-6 text-[10px] font-bold text-slate-400 flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200">
-								<Move size={12} className="text-blue-500" /> Arrastra para
-								alinear (1px = 1pt en PDF)
+								<Move size={12} className="text-blue-500" /> Drag to align (1px
+								= 1pt in PDF)
 							</div>
 						</div>
 

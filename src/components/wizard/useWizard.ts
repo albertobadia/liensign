@@ -32,45 +32,49 @@ export function useWizard(steps: typeof STEPS) {
 	const { trigger, handleSubmit, setValue, getValues, reset } = methods;
 
 	useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		const editId = params.get("edit");
-		const state = params.get("state")?.toUpperCase();
-		const type = params.get("type");
+		const initForm = async () => {
+			const params = new URLSearchParams(window.location.search);
+			const editId = params.get("edit");
+			const state = params.get("state")?.toUpperCase();
+			const type = params.get("type");
 
-		if (editId) {
-			const record = getWaiver(editId);
-			if (record) {
-				setEditingId(editId);
-				for (const [key, value] of Object.entries(record.data)) {
-					setValue(key as keyof WizardData, value);
+			if (editId) {
+				const record = await getWaiver(editId);
+				if (record) {
+					setEditingId(editId);
+					for (const [key, value] of Object.entries(record.data)) {
+						setValue(key as keyof WizardData, value);
+					}
+					return;
 				}
-				return;
 			}
-		}
 
-		const profile = getProfile();
-		if (profile) {
-			setValue("contractorName", profile.contractorName);
-			setValue("contractorAddress", profile.contractorAddress);
-			setValue("contractorPhone", profile.contractorPhone);
-			setValue("signature", profile.signature);
-		}
+			const profile = getProfile();
+			if (profile) {
+				setValue("contractorName", profile.contractorName);
+				setValue("contractorAddress", profile.contractorAddress);
+				setValue("contractorPhone", profile.contractorPhone);
+				setValue("signature", profile.signature);
+			}
 
-		if (state && SUPPORTED_STATES.includes(state)) {
-			setValue("projectState", state as WizardData["projectState"]);
-		}
+			if (state && SUPPORTED_STATES.includes(state)) {
+				setValue("projectState", state as WizardData["projectState"]);
+			}
 
-		if (
-			type &&
-			[
-				"conditional_progress",
-				"unconditional_progress",
-				"conditional_final",
-				"unconditional_final",
-			].includes(type)
-		) {
-			setValue("waiverType", type as WizardData["waiverType"]);
-		}
+			if (
+				type &&
+				[
+					"conditional_progress",
+					"unconditional_progress",
+					"conditional_final",
+					"unconditional_final",
+				].includes(type)
+			) {
+				setValue("waiverType", type as WizardData["waiverType"]);
+			}
+		};
+
+		initForm();
 	}, [setValue]);
 
 	const handleNext = async () => {
@@ -154,9 +158,9 @@ export function useWizard(steps: typeof STEPS) {
 			URL.revokeObjectURL(url);
 
 			if (editingId) {
-				updateWaiver(editingId, data);
+				await updateWaiver(editingId, data);
 			} else {
-				saveWaiver(data);
+				await saveWaiver(data);
 			}
 			setIsComplete(true);
 			toast.success("Waiver generated successfully!", { id: toastId });
@@ -224,9 +228,9 @@ export function useWizard(steps: typeof STEPS) {
 			}
 
 			if (editingId) {
-				updateWaiver(editingId, data);
+				await updateWaiver(editingId, data);
 			} else {
-				saveWaiver(data);
+				await saveWaiver(data);
 			}
 		} catch (error: unknown) {
 			console.error("Sharing error:", error);

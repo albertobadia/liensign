@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { wizardSchema } from "../components/wizard/schema";
+import { deleteOne, getAll, getOne, putOne } from "./db";
 
 const waiverRecordSchema = z.object({
 	id: z.string(),
@@ -9,66 +10,77 @@ const waiverRecordSchema = z.object({
 
 export type WaiverRecord = z.infer<typeof waiverRecordSchema>;
 
-const STORAGE_KEY = "liensign_waiver_history";
+const STORE_NAME = "waivers";
+const LEGACY_STORAGE_KEY = "liensign_waiver_history";
+const MIGRATION_KEY = "liensign_indexeddb_migrated";
 
-function readAll(): WaiverRecord[] {
-	if (typeof window === "undefined") return [];
-	const raw = localStorage.getItem(STORAGE_KEY);
-	if (!raw) return [];
-	try {
-		const parsed = z.array(waiverRecordSchema).safeParse(JSON.parse(raw));
-		if (!parsed.success) {
-			console.error("Invalid waiver history data", parsed.error.flatten());
-			return [];
+async function ensureMigration() {
+	if (typeof window === "undefined") return;
+	if (localStorage.getItem(MIGRATION_KEY)) return;
+
+	const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+	if (raw) {
+		try {
+			const parsed = z.array(waiverRecordSchema).safeParse(JSON.parse(raw));
+			if (parsed.success) {
+				for (const record of parsed.data) {
+					await putOne(STORE_NAME, record);
+				}
+				// We keep the old data for safety for now, but mark migration as done
+				localStorage.setItem(MIGRATION_KEY, "true");
+			}
+		} catch (e) {
+			console.error("Migration failed:", e);
 		}
-		return parsed.data;
-	} catch (e) {
-		console.error("Failed to parse waiver history", e);
-		return [];
+	} else {
+		localStorage.setItem(MIGRATION_KEY, "true");
 	}
 }
 
-function writeAll(records: WaiverRecord[]): void {
-	if (typeof window === "undefined") return;
-	localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-}
-
-export function saveWaiver(data: z.infer<typeof wizardSchema>): string {
+export async function saveWaiver(
+	data: z.infer<typeof wizardSchema>,
+): Promise<string> {
+	await ensureMigration();
 	const id = crypto.randomUUID();
 	const record: WaiverRecord = {
 		id,
 		createdAt: new Date().toISOString(),
 		data,
 	};
-	const records = readAll();
-	records.unshift(record);
-	writeAll(records);
+	await putOne(STORE_NAME, record);
 	return id;
 }
 
-export function getWaivers(): WaiverRecord[] {
-	return readAll();
+export async function getWaivers(): Promise<WaiverRecord[]> {
+	await ensureMigration();
+	const records = await getAll<WaiverRecord>(STORE_NAME);
+	return records.sort(
+		(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+	);
 }
 
-export function getWaiver(id: string): WaiverRecord | null {
-	return readAll().find((r) => r.id === id) ?? null;
+export async function getWaiver(id: string): Promise<WaiverRecord | null> {
+	await ensureMigration();
+	return await getOne<WaiverRecord>(STORE_NAME, id);
 }
 
-export function updateWaiver(
+export async function updateWaiver(
 	id: string,
 	data: z.infer<typeof wizardSchema>,
-): void {
-	const records = readAll();
-	const index = records.findIndex((r) => r.id === id);
-	if (index === -1) return;
-	records[index] = {
-		...records[index],
+): Promise<void> {
+	await ensureMigration();
+	const record = await getOne<WaiverRecord>(STORE_NAME, id);
+	if (!record) return;
+
+	const updatedRecord: WaiverRecord = {
+		...record,
 		data,
 		createdAt: new Date().toISOString(),
 	};
-	writeAll(records);
+	await putOne(STORE_NAME, updatedRecord);
 }
 
-export function deleteWaiver(id: string): void {
-	writeAll(readAll().filter((r) => r.id !== id));
+export async function deleteWaiver(id: string): Promise<void> {
+	await ensureMigration();
+	await deleteOne(STORE_NAME, id);
 }

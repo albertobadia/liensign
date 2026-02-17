@@ -218,13 +218,11 @@ export async function generateWaiverPDF(
 			const scaledWidth = originalWidth * finalScale;
 			const scaledHeight = originalHeight * finalScale;
 
-			// Coords relative to the "By:" line start (MARGIN + 60, current yOffset - 2)
 			const offsetX = (data.signatureOffsetX as number) ?? 0;
 			const offsetY = (data.signatureOffsetY as number) ?? 0;
 			const rotation = (data.signatureRotation as number) ?? 0;
 
-			// Adjusted position
-			// In UI, +offset is DOWN. In PDF-lib, SUBTRACTING from Y moves DOWN.
+			// Calculate final coordinates relative to the "By:" baseline
 			const sigX = MARGIN + 60 + offsetX;
 			const sigY = ctx.yOffset - 2 - offsetY;
 

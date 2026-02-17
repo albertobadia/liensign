@@ -25,7 +25,17 @@ export function WaiverHistory() {
 	const [isGenerating, setIsGenerating] = useState<string | null>(null);
 
 	useEffect(() => {
-		setWaivers(getWaivers());
+		const loadWaivers = async () => {
+			try {
+				const data = await getWaivers();
+				setWaivers(data);
+			} catch (error) {
+				console.error("Failed to load waivers:", error);
+				toast.error("Failed to load waiver history");
+			} finally {
+			}
+		};
+		loadWaivers();
 	}, []);
 
 	const handleDelete = (id: string, name: string) => {
@@ -33,9 +43,10 @@ export function WaiverHistory() {
 			description: "This action cannot be undone.",
 			action: {
 				label: "Delete",
-				onClick: () => {
-					deleteWaiver(id);
-					setWaivers(getWaivers());
+				onClick: async () => {
+					await deleteWaiver(id);
+					const data = await getWaivers();
+					setWaivers(data);
 					toast.success("Waiver deleted from history");
 				},
 			},

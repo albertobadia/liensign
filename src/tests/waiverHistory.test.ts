@@ -21,10 +21,31 @@ const mockWaiverData: WizardData = {
 	paymentAmount: "1000.00",
 	throughDate: "2024-01-01",
 	signature: "data:image/png;base64,mock",
+	signatureOffsetX: 0,
+	signatureOffsetY: 0,
+	signatureScale: 1,
+	signatureRotation: 0,
+	isDraft: false,
 };
+
+// Mock IDB store and operations
+const mockStore = new Map<string, unknown>();
+vi.mock("../lib/db", () => ({
+	openDB: vi.fn(),
+	getAll: vi.fn(async () => Array.from(mockStore.values())),
+	getOne: vi.fn(async (_name, id) => mockStore.get(id)),
+	putOne: vi.fn(async (_name, data) => {
+		// biome-ignore lint/suspicious/noExplicitAny: Mocking simplified storage
+		mockStore.set((data as any).id, data);
+	}),
+	deleteOne: vi.fn(async (_name, id) => {
+		mockStore.delete(id);
+	}),
+}));
 
 describe("waiverHistory", () => {
 	beforeEach(() => {
+		mockStore.clear();
 		vi.stubGlobal("window", {});
 		vi.stubGlobal("localStorage", {
 			getItem: vi.fn(),
@@ -36,65 +57,48 @@ describe("waiverHistory", () => {
 		});
 	});
 
-	it("should save a waiver and return its ID", () => {
-		const id = saveWaiver(mockWaiverData);
+	it("should save a waiver and return its ID", async () => {
+		const id = await saveWaiver(mockWaiverData);
 		expect(id).toBe("mock-uuid");
-		expect(localStorage.setItem).toHaveBeenCalledWith(
-			"liensign_waiver_history",
-			expect.stringContaining("Project X"),
-		);
+		const stored = mockStore.get("mock-uuid");
+		// biome-ignore lint/suspicious/noExplicitAny: Simple test assertion
+		expect((stored as any).data.projectName).toBe("Project X");
 	});
 
-	it("should get all waivers", () => {
-		const mockRecords = [
-			{
-				id: "1",
-				createdAt: new Date().toISOString(),
-				data: { ...mockWaiverData, projectName: "P1" },
-			},
-		];
-		vi.mocked(localStorage.getItem).mockReturnValue(
-			JSON.stringify(mockRecords),
-		);
+	it("should get all waivers", async () => {
+		const mockRecord = {
+			id: "1",
+			createdAt: new Date().toISOString(),
+			data: { ...mockWaiverData, projectName: "P1" },
+		};
+		mockStore.set("1", mockRecord);
 
-		const waivers = getWaivers();
+		const waivers = await getWaivers();
 		expect(waivers).toHaveLength(1);
 		expect(waivers[0].data.projectName).toBe("P1");
 	});
 
-	it("should get a single waiver by ID", () => {
-		const mockRecords = [{ id: "1", createdAt: "...", data: mockWaiverData }];
-		vi.mocked(localStorage.getItem).mockReturnValue(
-			JSON.stringify(mockRecords),
-		);
+	it("should get a single waiver by ID", async () => {
+		const mockRecord = { id: "1", createdAt: "...", data: mockWaiverData };
+		mockStore.set("1", mockRecord);
 
-		const waiver = getWaiver("1");
+		const waiver = await getWaiver("1");
 		expect(waiver?.data.projectName).toBe("Project X");
 	});
 
-	it("should delete a waiver", () => {
-		const mockRecords = [{ id: "1", createdAt: "...", data: mockWaiverData }];
-		vi.mocked(localStorage.getItem).mockReturnValue(
-			JSON.stringify(mockRecords),
-		);
+	it("should delete a waiver", async () => {
+		mockStore.set("1", { id: "1", data: mockWaiverData });
 
-		deleteWaiver("1");
-		expect(localStorage.setItem).toHaveBeenCalledWith(
-			"liensign_waiver_history",
-			"[]",
-		);
+		await deleteWaiver("1");
+		expect(mockStore.size).toBe(0);
 	});
 
-	it("should update a waiver", () => {
-		const mockRecords = [{ id: "1", createdAt: "...", data: mockWaiverData }];
-		vi.mocked(localStorage.getItem).mockReturnValue(
-			JSON.stringify(mockRecords),
-		);
+	it("should update a waiver", async () => {
+		mockStore.set("1", { id: "1", createdAt: "...", data: mockWaiverData });
 
-		updateWaiver("1", { ...mockWaiverData, projectName: "Updated" });
-		expect(localStorage.setItem).toHaveBeenCalledWith(
-			"liensign_waiver_history",
-			expect.stringContaining("Updated"),
-		);
+		await updateWaiver("1", { ...mockWaiverData, projectName: "Updated" });
+		const updated = mockStore.get("1");
+		// biome-ignore lint/suspicious/noExplicitAny: Simple test assertion
+		expect((updated as any).data.projectName).toBe("Updated");
 	});
 });
