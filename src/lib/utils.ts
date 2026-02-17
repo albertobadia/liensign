@@ -12,5 +12,5 @@ export function slugify(text: string) {
 		.trim()
 		.replace(/\s+/g, "_")
 		.replace(/[^\w-]+/g, "")
-		.replace(/--+/g, "_");
+		.replace(/__+/g, "_");
 }
