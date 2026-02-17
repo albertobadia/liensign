@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { generateWaiverPDF } from "../../lib/pdf";
 import { SUPPORTED_STATES } from "../../lib/templates";
 import { getProfile } from "../../lib/userStore";
-import { cn } from "../../lib/utils";
+import { cn, sanitizeFilename } from "../../lib/utils";
 import { getWaiver, saveWaiver, updateWaiver } from "../../lib/waiverHistory";
 import { type WizardData, wizardSchema } from "./schema";
 import { StepContractor } from "./steps/StepContractor";
@@ -40,7 +40,7 @@ const STEPS = [
 	},
 	{ id: "project", title: "Project", icon: User, component: StepProject },
 	{
-		id: "details",
+		id: "financials",
 		title: "Financials",
 		icon: Banknote,
 		component: StepFinancials,
@@ -196,9 +196,10 @@ export function Wizard() {
 				type: "application/pdf",
 			});
 			const url = URL.createObjectURL(blob);
+			const fileName = `LienWaiver-${sanitizeFilename(data.projectName)}.pdf`;
 			const link = document.createElement("a");
 			link.href = url;
-			link.download = `LienWaiver-${data.projectName.replace(/\s+/g, "-")}.pdf`;
+			link.download = fileName;
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);
@@ -245,7 +246,7 @@ export function Wizard() {
 				data.isDraft ? "DRAFT" : undefined,
 			);
 
-			const fileName = `LienWaiver-${data.projectName.replace(/\s+/g, "-")}.pdf`;
+			const fileName = `LienWaiver-${sanitizeFilename(data.projectName)}.pdf`;
 			const file = new File([pdfBytes as BlobPart], fileName, {
 				type: "application/pdf",
 			});
@@ -254,7 +255,6 @@ export function Wizard() {
 			const defaultTemplate = `Hi,\n\nPlease find attached the lien waiver for ${data.projectName}.\n\nBest regards,\n${data.contractorName}`;
 			const template = profile?.emailTemplate || defaultTemplate;
 
-			// Check if Web Share API is available and can share files
 			if (
 				navigator.share &&
 				navigator.canShare &&
@@ -267,7 +267,6 @@ export function Wizard() {
 				});
 				toast.success("Share menu opened!", { id: toastId });
 			} else {
-				// Fallback to mailto (no attachment possible)
 				const subject = encodeURIComponent(`Lien Waiver - ${data.projectName}`);
 				const body = encodeURIComponent(template);
 				window.location.href = `mailto:?subject=${subject}&body=${body}`;
