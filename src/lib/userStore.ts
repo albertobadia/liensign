@@ -1,9 +1,13 @@
-export interface UserProfile {
-	contractorName: string;
-	contractorAddress: string;
-	contractorPhone: string;
-	signature: string; // base64 PNG
-}
+import { z } from "zod";
+
+const userProfileSchema = z.object({
+	contractorName: z.string(),
+	contractorAddress: z.string(),
+	contractorPhone: z.string(),
+	signature: z.string(),
+});
+
+export type UserProfile = z.infer<typeof userProfileSchema>;
 
 const STORAGE_KEY = "liensign_user_profile";
 
@@ -17,7 +21,12 @@ export function getProfile(): UserProfile | null {
 	const data = localStorage.getItem(STORAGE_KEY);
 	if (!data) return null;
 	try {
-		return JSON.parse(data) as UserProfile;
+		const parsed = userProfileSchema.safeParse(JSON.parse(data));
+		if (!parsed.success) {
+			console.error("Invalid user profile data", parsed.error.flatten());
+			return null;
+		}
+		return parsed.data;
 	} catch (e) {
 		console.error("Failed to parse user profile", e);
 		return null;
